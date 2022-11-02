@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsString } from 'class-validator';
+import { IsBoolean, IsEmail, IsNotEmpty, IsString } from 'class-validator';
 
 export class CreateUserDto {
   @ApiProperty({
@@ -8,6 +8,7 @@ export class CreateUserDto {
     example: 'ram',
   })
   @IsString()
+  @IsNotEmpty({ message: 'Password id is required' })
   firstName: string;
 
   @ApiProperty({
@@ -15,22 +16,42 @@ export class CreateUserDto {
     description: 'Name last Enter',
     example: 'patel',
   })
+  @IsNotEmpty({ message: 'Last Name is required' })
   @IsString()
   lastName: string;
 
   @ApiProperty({
     type: String,
     description: 'Name last Enter',
-    example: 'rampatel@gmail.com',
+    example: 'patel@gmail.com',
   })
   @IsString()
+  @IsNotEmpty({ message: 'Email is required' })
+  @IsEmail({ message: 'Email enter in Proper Formate..' })
   email: string;
+
+  @ApiProperty({
+    type: String,
+    description: 'Contact no Enter',
+    example: '78567890344',
+  })
+  @IsNotEmpty({ message: 'Conatct No is required' })
+  contactno: string;
+
+  @ApiProperty({
+    type: String,
+    description: 'Password Enter',
+    example: 'admin@123',
+  })
+  @IsNotEmpty({ message: 'Password is required' })
+  password: string;
 
   @ApiProperty({
     type: Boolean,
     description: 'enter status',
     example: true,
   })
+  @IsNotEmpty({ message: 'Status is required' })
   @IsBoolean()
   isActive: boolean;
 }
