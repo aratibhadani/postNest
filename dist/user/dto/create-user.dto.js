@@ -42,7 +42,7 @@ __decorate([
     }),
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsNotEmpty)({ message: 'Email is required' }),
-    (0, class_validator_1.IsEmail)({ message: 'Email enter in Proper Formate..' }),
+    (0, class_validator_1.IsEmail)(),
     __metadata("design:type", String)
 ], CreateUserDto.prototype, "email", void 0);
 __decorate([

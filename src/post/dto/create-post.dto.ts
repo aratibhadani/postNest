@@ -20,12 +20,6 @@ export class CreatePostDto {
   @IsString()
   content: string;
 
-  @ApiProperty({
-    type: String,
-    description: 'image Enter',
-    example: 'image add',
-  })
-  @IsNotEmpty({ message: 'image is required' })
-  @IsString()
-  image: string;
+  @ApiProperty({ type: 'file' })
+  file: any;
 }

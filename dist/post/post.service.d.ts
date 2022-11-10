@@ -1,8 +1,7 @@
-import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 export declare class PostService {
-    create(createPostDto: CreatePostDto): string;
-    findAll(): string;
+    createPost(file: any, body: any): Promise<any>;
+    findAllPost(response: any): Promise<unknown>;
     findOne(id: number): string;
     update(id: number, updatePostDto: UpdatePostDto): string;
     remove(id: number): string;

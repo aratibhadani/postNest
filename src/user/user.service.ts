@@ -1,11 +1,13 @@
 import { HttpCode, Injectable } from '@nestjs/common';
 import { UserEntity } from 'src/entities/user.entity';
 import { encryptPassword } from 'src/helper/common';
-import { getRepository } from 'typeorm';
+import { getConnection, getRepository } from 'typeorm';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UserService {
-  async createUser(body, Response: any): Promise<any> {
+  async createUser(body:CreateUserDto, Response: any): Promise<any> {
     const { firstName, lastName, email, contactno, password, isActive } = body;
     const user_repo = getRepository(UserEntity);
 
@@ -60,8 +62,10 @@ export class UserService {
 
   findAllUser(Response: any) {
     const user_repo = getRepository(UserEntity);
+
     user_repo
-      .find({})
+      .find({
+      })
       .then((res) => {
         if (res.length < 1) {
           Response.status(400).json({
@@ -101,9 +105,28 @@ export class UserService {
     }
   }
 
-  // update(id: number, updateUserDto: UpdateUserDto) {
-  //   return `This action updates a #${id} user`;
-  // }
+  async updateUser(id: number, body: UpdateUserDto, Response: any) {
+    const usercheck = await this.checkUserByUserId(id);
+    if (!usercheck) {
+      Response.status(404).json({ data: null, message: 'User Not Found..' });
+    } else {
+      const { firstName, lastName, email, contactno, isActive } = body;
+      await getConnection()
+        .createQueryBuilder()
+        .update(UserEntity)
+        .set({ firstName, lastName, email, contactno, isActive })
+        .where("id = :id", { id })
+        .execute()
+        .then(()=>{
+          Response.status(200).json({message: 'User Data updated...' });
+        })
+        .catch((err)=>{
+          Response.status(400).json({
+            message: 'User Data not updated...',
+          });
+        });
+    }
+  }
 
   async removeUser(id: number, Response: any) {
     const usercheck = await this.checkUserByUserId(id);

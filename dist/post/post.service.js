@@ -8,12 +8,53 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PostService = void 0;
 const common_1 = require("@nestjs/common");
+const post_image_entity_1 = require("../entities/post-image.entity");
+const post_entity_1 = require("../entities/post.entity");
+const typeorm_1 = require("typeorm");
 let PostService = class PostService {
-    create(createPostDto) {
-        return 'This action adds a new post';
+    createPost(file, body) {
+        return new Promise(async (resolve, reject) => {
+            const postRepo = (0, typeorm_1.getRepository)(post_entity_1.PostEntity);
+            const postImageRepo = (0, typeorm_1.getRepository)(post_image_entity_1.PostImageEntity);
+            postRepo.save({
+                name: body.name,
+                content: body.content
+            }).then((postData) => {
+                console.log('postdata0==>', postData);
+                if (!postData) {
+                    return resolve({
+                        message: 'Data not Save..',
+                        error: true
+                    });
+                }
+                else {
+                    file.map((item) => {
+                        postImageRepo.save({
+                            image: item.originalname,
+                            postId: postData.id
+                        }).then((res) => {
+                            console.log('res', res);
+                        }).catch((err) => {
+                            console.log('not save this post image', err);
+                        });
+                    });
+                    return resolve({
+                        message: 'Data Save..',
+                        error: false
+                    });
+                }
+            }).catch((err) => {
+                console.log('error-->', err);
+            });
+        });
     }
-    findAll() {
-        return `This action returns all post`;
+    findAllPost(response) {
+        const post_repo = (0, typeorm_1.getRepository)(post_entity_1.PostEntity);
+        return new Promise(async (resolve, reject) => {
+            return post_repo.createQueryBuilder('post')
+                .leftJoinAndSelect("post.images", "roles")
+                .getMany();
+        });
     }
     findOne(id) {
         return `This action returns a #${id} post`;

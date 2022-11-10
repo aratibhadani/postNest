@@ -105,6 +105,29 @@ let UserService = class UserService {
             });
         }
     }
+    async updateUser(id, body, Response) {
+        const usercheck = await this.checkUserByUserId(id);
+        if (!usercheck) {
+            Response.status(404).json({ data: null, message: 'User Not Found..' });
+        }
+        else {
+            const { firstName, lastName, email, contactno, isActive } = body;
+            await (0, typeorm_1.getConnection)()
+                .createQueryBuilder()
+                .update(user_entity_1.UserEntity)
+                .set({ firstName, lastName, email, contactno, isActive })
+                .where("id = :id", { id })
+                .execute()
+                .then(() => {
+                Response.status(200).json({ message: 'User Data updated...' });
+            })
+                .catch((err) => {
+                Response.status(400).json({
+                    message: 'User Data not updated...',
+                });
+            });
+        }
+    }
     async removeUser(id, Response) {
         const usercheck = await this.checkUserByUserId(id);
         const user_repo = (0, typeorm_1.getRepository)(user_entity_1.UserEntity);

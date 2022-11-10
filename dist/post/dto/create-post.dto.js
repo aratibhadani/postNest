@@ -35,14 +35,8 @@ __decorate([
     __metadata("design:type", String)
 ], CreatePostDto.prototype, "content", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({
-        type: String,
-        description: 'image Enter',
-        example: 'image add',
-    }),
-    (0, class_validator_1.IsNotEmpty)({ message: 'image is required' }),
-    (0, class_validator_1.IsString)(),
-    __metadata("design:type", String)
-], CreatePostDto.prototype, "image", void 0);
+    (0, swagger_1.ApiProperty)({ type: 'file' }),
+    __metadata("design:type", Object)
+], CreatePostDto.prototype, "file", void 0);
 exports.CreatePostDto = CreatePostDto;
 //# sourceMappingURL=create-post.dto.js.map

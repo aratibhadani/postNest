@@ -1,16 +1,10 @@
 import {
-  AfterInsert,
-  BaseEntity,
-  BeforeInsert,
   Column,
-  CreateDateColumn,
   Entity,
   PrimaryGeneratedColumn,
-  UpdateDateColumn,
 } from 'typeorm';
-import * as bcrypt from 'bcrypt';
 
-@Entity({ name: 'user' })
+@Entity({ name: 'users' })
 export class UserEntity {
   @PrimaryGeneratedColumn({ type: 'int' })
   id: number;
@@ -39,19 +33,12 @@ export class UserEntity {
   @Column({ default: true })
   isActive: boolean;
 
-  // @CreateDateColumn({
-  //   type: 'timestamp',
-  //   nullable: false,
-  //   default: 'NOW()',
-  // })
-  // createdAt: Date;
 
-  // @UpdateDateColumn({
-  //   type: 'timestamp',
-  //   default: () => 'CURRENT_TIMESTAMP',
-  //   nullable: false,
-  // })
-  // updatedAt: Date;
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  createdAt: Date
+
+  @Column({ type: 'timestamp', default: () => "CURRENT_TIMESTAMP", nullable: true })
+  updatedAt: Date
 
   // @AfterInsert()
   // async hashPassword() {

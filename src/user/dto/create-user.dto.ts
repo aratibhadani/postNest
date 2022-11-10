@@ -27,7 +27,7 @@ export class CreateUserDto {
   })
   @IsString()
   @IsNotEmpty({ message: 'Email is required' })
-  @IsEmail({ message: 'Email enter in Proper Formate..' })
+  @IsEmail()
   email: string;
 
   @ApiProperty({

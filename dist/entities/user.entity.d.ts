@@ -8,4 +8,6 @@ export declare class UserEntity {
     loginToken: string;
     forgetToken: string;
     isActive: boolean;
+    createdAt: Date;
+    updatedAt: Date;
 }

@@ -49,8 +49,16 @@ __decorate([
     (0, typeorm_1.Column)({ default: true }),
     __metadata("design:type", Boolean)
 ], UserEntity.prototype, "isActive", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' }),
+    __metadata("design:type", Date)
+], UserEntity.prototype, "createdAt", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'timestamp', default: () => "CURRENT_TIMESTAMP", nullable: true }),
+    __metadata("design:type", Date)
+], UserEntity.prototype, "updatedAt", void 0);
 UserEntity = __decorate([
-    (0, typeorm_1.Entity)({ name: 'user' })
+    (0, typeorm_1.Entity)({ name: 'users' })
 ], UserEntity);
 exports.UserEntity = UserEntity;
 //# sourceMappingURL=user.entity.js.map
