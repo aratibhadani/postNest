@@ -3,5 +3,6 @@ export declare class PostEntity {
     id: number;
     name: string;
     content: string;
-    images: PostImageEntity;
+    user: PostEntity;
+    images: PostImageEntity[];
 }

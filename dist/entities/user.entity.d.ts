@@ -1,3 +1,4 @@
+import { PostEntity } from './post.entity';
 export declare class UserEntity {
     id: number;
     firstName: string;
@@ -10,4 +11,5 @@ export declare class UserEntity {
     isActive: boolean;
     createdAt: Date;
     updatedAt: Date;
+    posts: PostEntity[];
 }

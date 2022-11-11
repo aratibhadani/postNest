@@ -13,46 +13,50 @@ export class PostService {
       const postImageRepo = getRepository(PostImageEntity);
       postRepo.save({
         name: body.name,
-        content: body.content
+        content: body.content,
+        userId: 1
       }).then((postData) => {
         //{ name: 'sdf', content: 'sdf', id: 1 }
-        console.log('postdata0==>', postData)
-        if (!postData) {
-          return resolve({
-            message: 'Data not Save..',
-            error: true
-          })
-        } else {
+        // console.log('postdata0==>', postData)
+        // if (!postData) {
+        //   return resolve({
+        //     message: 'Data not Save..',
+        //     error: true
+        //   })
+        // } else {
 
-          file.map((item) => {
-            postImageRepo.save({
-              image: item.originalname,
-              postId: postData.id
-            }).then((res) => {
-              console.log('res', res)
-            }).catch((err) => {
-              console.log('not save this post image', err)
-            })
-          })
-          return resolve({
-            message: 'Data Save..',
-            error: false
-          })
-        }
+        //   file.map((item) => {
+        //     console.log(item);
+        //     console.log('aaa->',postData);
+
+        //     postImageRepo.save({
+        //       image: item.originalname,
+        //       postId: 11
+        //     }).then((res) => {
+        //       console.log('res', res.id)
+        //     }).catch((err) => {
+        //       console.log('not save this post image', err)
+        //     })
+        //   })
+        //   return resolve({
+        //     message: 'Data Save..',
+        //     error: false
+        //   })
+        // }
       }).catch((err) => {
         console.log('error-->', err);
       })
     })
   }
 
-  findAllPost(response):Promise<unknown> {
+  findAllPost(response): Promise<unknown> {
     const post_repo = getRepository(PostEntity);
     return new Promise(async (resolve, reject) => {
       return post_repo.createQueryBuilder('post')
-      .leftJoinAndSelect("post.images", "roles")
-      .getMany(); 
+        .leftJoinAndSelect("post.images", "roles")
+        .getMany();
     })
-   
+
   }
 
   findOne(id: number) {

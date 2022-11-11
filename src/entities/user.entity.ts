@@ -1,8 +1,10 @@
 import {
   Column,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { PostEntity } from './post.entity';
 
 @Entity({ name: 'users' })
 export class UserEntity {
@@ -37,8 +39,13 @@ export class UserEntity {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date
 
-  @Column({ type: 'timestamp', default: () => "CURRENT_TIMESTAMP", nullable: true })
+  @Column({ type: 'timestamp', default: () => "CURRENT_TIMESTAMP" })
   updatedAt: Date
+
+  // @OneToMany(() => PostEntity, (post: PostEntity) => post.userId)
+  // posts: PostEntity[];
+  @OneToMany(type => PostEntity, post => post.user)
+  posts: PostEntity[];
 
   // @AfterInsert()
   // async hashPassword() {

@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.PostEntity = void 0;
 const typeorm_1 = require("typeorm");
 const post_image_entity_1 = require("./post-image.entity");
+const user_entity_1 = require("./user.entity");
 let PostEntity = class PostEntity {
 };
 __decorate([
@@ -27,8 +28,12 @@ __decorate([
     __metadata("design:type", String)
 ], PostEntity.prototype, "content", void 0);
 __decorate([
+    (0, typeorm_1.ManyToOne)(() => user_entity_1.UserEntity, (user) => user.posts),
+    __metadata("design:type", PostEntity)
+], PostEntity.prototype, "user", void 0);
+__decorate([
     (0, typeorm_1.OneToMany)(() => post_image_entity_1.PostImageEntity, (image) => image.post),
-    __metadata("design:type", post_image_entity_1.PostImageEntity)
+    __metadata("design:type", Array)
 ], PostEntity.prototype, "images", void 0);
 PostEntity = __decorate([
     (0, typeorm_1.Entity)({ name: 'post' })

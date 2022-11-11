@@ -18,31 +18,9 @@ let PostService = class PostService {
             const postImageRepo = (0, typeorm_1.getRepository)(post_image_entity_1.PostImageEntity);
             postRepo.save({
                 name: body.name,
-                content: body.content
+                content: body.content,
+                userId: 1
             }).then((postData) => {
-                console.log('postdata0==>', postData);
-                if (!postData) {
-                    return resolve({
-                        message: 'Data not Save..',
-                        error: true
-                    });
-                }
-                else {
-                    file.map((item) => {
-                        postImageRepo.save({
-                            image: item.originalname,
-                            postId: postData.id
-                        }).then((res) => {
-                            console.log('res', res);
-                        }).catch((err) => {
-                            console.log('not save this post image', err);
-                        });
-                    });
-                    return resolve({
-                        message: 'Data Save..',
-                        error: false
-                    });
-                }
             }).catch((err) => {
                 console.log('error-->', err);
             });
