@@ -1,3 +1,4 @@
+import { ArticalEntity } from './artical.entity';
 import { PostEntity } from './post.entity';
 export declare class UserEntity {
     id: number;
@@ -12,4 +13,5 @@ export declare class UserEntity {
     createdAt: Date;
     updatedAt: Date;
     posts: PostEntity[];
+    articals: ArticalEntity[];
 }

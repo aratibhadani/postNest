@@ -4,6 +4,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { ArticalEntity } from './artical.entity';
 import { PostEntity } from './post.entity';
 
 @Entity({ name: 'users' })
@@ -44,6 +45,9 @@ export class UserEntity {
   
   @OneToMany(() => PostEntity, (post) => post.user)
   posts: PostEntity[];
+
+  @OneToMany(() => ArticalEntity, (artical) => artical.user)
+  articals: ArticalEntity[];
 
   // @AfterInsert()
   // async hashPassword() {

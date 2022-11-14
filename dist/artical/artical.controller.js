@@ -14,65 +14,156 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ArticalController = void 0;
 const common_1 = require("@nestjs/common");
-const swagger_1 = require("@nestjs/swagger");
-const swaggerconfig_1 = require("../config/swaggerconfig");
 const artical_service_1 = require("./artical.service");
 const create_artical_dto_1 = require("./dto/create-artical.dto");
-const update_artical_dto_1 = require("./dto/update-artical.dto");
+const swagger_1 = require("@nestjs/swagger");
+const swaggerconfig_1 = require("../config/swaggerconfig");
+const platform_express_1 = require("@nestjs/platform-express");
+const multer_1 = require("multer");
 let ArticalController = class ArticalController {
     constructor(articalService) {
         this.articalService = articalService;
     }
-    create(createArticalDto) {
-        return this.articalService.create(createArticalDto);
+    async create(file, body, response) {
+        if (file.length == 0) {
+            return response.status(common_1.HttpStatus.BAD_REQUEST).send({
+                message: 'file is required',
+                data: null,
+                error: true,
+            });
+        }
+        const resObj = await this.articalService.createPost(file, body);
+        if (resObj.error) {
+            return response.status(common_1.HttpStatus.BAD_REQUEST).send({
+                message: resObj.message,
+                data: resObj.data,
+                error: resObj.error
+            });
+        }
+        else {
+            return response.status(common_1.HttpStatus.OK).send({
+                message: resObj.message,
+                data: resObj.data,
+                error: resObj.error
+            });
+        }
     }
-    findAll() {
-        return this.articalService.findAll();
+    findAll(response) {
+        return this.articalService.findAllPost(response);
     }
-    findOne(id) {
-        return this.articalService.findOne(+id);
+    async findOne(id, response) {
+        const resObj = await this.articalService.findOne(+id);
+        if (resObj.error) {
+            return response.status(common_1.HttpStatus.BAD_REQUEST).send({
+                message: resObj.message,
+                data: resObj.data,
+                error: resObj.error
+            });
+        }
+        else {
+            return response.status(common_1.HttpStatus.OK).send({
+                message: resObj.message,
+                data: resObj.data,
+                error: resObj.error
+            });
+        }
     }
-    update(id, updateArticalDto) {
-        return this.articalService.update(+id, updateArticalDto);
+    async update(file, id, updatePostDto, response) {
+        if (file.length == 0) {
+            return response.status(common_1.HttpStatus.BAD_REQUEST).send({
+                message: 'file is required',
+                data: null,
+                error: true,
+            });
+        }
+        const resObj = await this.articalService.updatePost(+id, updatePostDto, file);
+        if (resObj.error) {
+            return response.status(common_1.HttpStatus.BAD_REQUEST).send({
+                message: resObj.message,
+                data: resObj.data,
+                error: resObj.error
+            });
+        }
+        else {
+            return response.status(common_1.HttpStatus.OK).send({
+                message: resObj.message,
+                data: resObj.data,
+                error: resObj.error
+            });
+        }
     }
-    remove(id) {
-        return this.articalService.remove(+id);
+    async remove(id, response) {
+        const resObj = await this.articalService.removePost(+id);
+        if (resObj.error) {
+            return response.status(common_1.HttpStatus.BAD_REQUEST).send({
+                message: resObj.message,
+                data: resObj.data,
+                error: resObj.error
+            });
+        }
+        else {
+            return response.status(common_1.HttpStatus.OK).send({
+                message: resObj.message,
+                data: resObj.data,
+                error: resObj.error
+            });
+        }
     }
 };
 __decorate([
-    (0, common_1.Post)(),
-    __param(0, (0, common_1.Body)()),
+    (0, common_1.Post)('add'),
+    (0, common_1.UsePipes)(new common_1.ValidationPipe()),
+    (0, common_1.UseInterceptors)((0, platform_express_1.FilesInterceptor)('file', 20, {
+        storage: (0, multer_1.diskStorage)({
+            destination: './uploads/',
+        }),
+    })),
+    __param(0, (0, common_1.UploadedFiles)()),
+    __param(1, (0, common_1.Body)()),
+    __param(2, (0, common_1.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_artical_dto_1.CreateArticalDto]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:paramtypes", [Array,
+        create_artical_dto_1.CreateArticalDto, Object]),
+    __metadata("design:returntype", Promise)
 ], ArticalController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
+    __param(0, (0, common_1.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], ArticalController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)(':id'),
-    __param(0, (0, common_1.Param)('id')),
+    __param(0, (0, common_1.Param)('id', new common_1.ParseIntPipe({ errorHttpStatusCode: common_1.HttpStatus.NOT_ACCEPTABLE }))),
+    __param(1, (0, common_1.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:paramtypes", [Number, Object]),
+    __metadata("design:returntype", Promise)
 ], ArticalController.prototype, "findOne", null);
 __decorate([
-    (0, common_1.Patch)(':id'),
-    __param(0, (0, common_1.Param)('id')),
-    __param(1, (0, common_1.Body)()),
+    (0, common_1.Put)(':id'),
+    (0, common_1.UsePipes)(new common_1.ValidationPipe()),
+    (0, common_1.UseInterceptors)((0, platform_express_1.FilesInterceptor)('file', 20, {
+        storage: (0, multer_1.diskStorage)({
+            destination: './uploads/',
+        }),
+    })),
+    __param(0, (0, common_1.UploadedFiles)()),
+    __param(1, (0, common_1.Param)('id', new common_1.ParseIntPipe({ errorHttpStatusCode: common_1.HttpStatus.NOT_ACCEPTABLE }))),
+    __param(2, (0, common_1.Body)()),
+    __param(3, (0, common_1.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, update_artical_dto_1.UpdateArticalDto]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:paramtypes", [Array, Number, create_artical_dto_1.CreateArticalDto, Object]),
+    __metadata("design:returntype", Promise)
 ], ArticalController.prototype, "update", null);
 __decorate([
     (0, common_1.Delete)(':id'),
-    __param(0, (0, common_1.Param)('id')),
+    __param(0, (0, common_1.Param)('id', new common_1.ParseIntPipe({ errorHttpStatusCode: common_1.HttpStatus.NOT_ACCEPTABLE }))),
+    __param(1, (0, common_1.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:paramtypes", [Number, Object]),
+    __metadata("design:returntype", Promise)
 ], ArticalController.prototype, "remove", null);
 ArticalController = __decorate([
     (0, swagger_1.ApiTags)(swaggerconfig_1.swaggerTags.artical),

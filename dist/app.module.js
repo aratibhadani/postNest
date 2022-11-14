@@ -18,6 +18,9 @@ const auth_module_1 = require("./auth/auth.module");
 const config_1 = require("@nestjs/config");
 const post_entity_1 = require("./entities/post.entity");
 const post_image_entity_1 = require("./entities/post-image.entity");
+const artical_module_1 = require("./artical/artical.module");
+const artical_entity_1 = require("./entities/artical.entity");
+const artical_image_entity_1 = require("./entities/artical-image.entity");
 let AppModule = class AppModule {
 };
 AppModule = __decorate([
@@ -31,13 +34,14 @@ AppModule = __decorate([
                 username: process.env.DB_USERNAME,
                 password: process.env.DB_PASSWORD,
                 database: process.env.DB_DATABASE_NAME,
-                entities: [user_entity_1.UserEntity, post_entity_1.PostEntity, post_image_entity_1.PostImageEntity],
+                entities: [user_entity_1.UserEntity, post_entity_1.PostEntity, post_image_entity_1.PostImageEntity, artical_entity_1.ArticalEntity, artical_image_entity_1.ArticalImageEntity],
                 synchronize: true,
                 logging: true,
             }),
             user_module_1.UserModule,
             auth_module_1.AuthModule,
             post_module_1.PostModule,
+            artical_module_1.ArticalModule
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],

@@ -1,6 +1,5 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { ArticalEntity } from './artical.entity';
-import { PostEntity } from './post.entity';
 
 @Entity({ name: 'articalimage' })
 export class ArticalImageEntity {
@@ -11,5 +10,7 @@ export class ArticalImageEntity {
   image: string;
 
   @ManyToOne(() => ArticalEntity, (artical) => artical.images)
-  artical: ArticalEntity;
+  @JoinColumn({ name: "artical_id" })
+  artical: number;
 }
+

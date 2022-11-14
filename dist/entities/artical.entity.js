@@ -12,8 +12,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ArticalEntity = void 0;
 const typeorm_1 = require("typeorm");
 const artical_image_entity_1 = require("./artical-image.entity");
-class ArticalEntity {
-}
+const user_entity_1 = require("./user.entity");
+let ArticalEntity = class ArticalEntity {
+};
 __decorate([
     (0, typeorm_1.PrimaryGeneratedColumn)({ type: 'int' }),
     __metadata("design:type", Number)
@@ -27,8 +28,16 @@ __decorate([
     __metadata("design:type", String)
 ], ArticalEntity.prototype, "content", void 0);
 __decorate([
-    (0, typeorm_1.OneToMany)(() => artical_image_entity_1.ArticalImageEntity, (image) => image.artical),
-    __metadata("design:type", artical_image_entity_1.ArticalImageEntity)
+    (0, typeorm_1.ManyToOne)(() => user_entity_1.UserEntity, (user) => user.articals),
+    (0, typeorm_1.JoinColumn)({ name: "user_id" }),
+    __metadata("design:type", Number)
+], ArticalEntity.prototype, "user", void 0);
+__decorate([
+    (0, typeorm_1.OneToMany)(() => artical_image_entity_1.ArticalImageEntity, (articalimage) => articalimage.artical),
+    __metadata("design:type", Array)
 ], ArticalEntity.prototype, "images", void 0);
+ArticalEntity = __decorate([
+    (0, typeorm_1.Entity)({ name: 'artical' })
+], ArticalEntity);
 exports.ArticalEntity = ArticalEntity;
 //# sourceMappingURL=artical.entity.js.map
