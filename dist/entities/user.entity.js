@@ -59,7 +59,7 @@ __decorate([
     __metadata("design:type", Date)
 ], UserEntity.prototype, "updatedAt", void 0);
 __decorate([
-    (0, typeorm_1.OneToMany)(type => post_entity_1.PostEntity, post => post.user),
+    (0, typeorm_1.OneToMany)(() => post_entity_1.PostEntity, (post) => post.user),
     __metadata("design:type", Array)
 ], UserEntity.prototype, "posts", void 0);
 UserEntity = __decorate([

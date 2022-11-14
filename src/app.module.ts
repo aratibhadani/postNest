@@ -23,7 +23,7 @@ import { PostImageEntity } from './entities/post-image.entity';
       database: process.env.DB_DATABASE_NAME,
       entities: [UserEntity, PostEntity, PostImageEntity],
       synchronize: true,
-      // logging: true,
+      logging: true,
     }),
     UserModule,
     AuthModule,

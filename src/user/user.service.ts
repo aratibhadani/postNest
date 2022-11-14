@@ -62,10 +62,10 @@ export class UserService {
 
   findAllUser(Response: any) {
     const user_repo = getRepository(UserEntity);
-
     user_repo
-      .find({
-      })
+      .createQueryBuilder('user')
+      .select(['user.firstName','user.lastName','user.email','user.isActive'])
+      .getMany()
       .then((res) => {
         if (res.length < 1) {
           Response.status(400).json({

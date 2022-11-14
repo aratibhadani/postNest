@@ -65,7 +65,9 @@ let UserService = class UserService {
     findAllUser(Response) {
         const user_repo = (0, typeorm_1.getRepository)(user_entity_1.UserEntity);
         user_repo
-            .find({})
+            .createQueryBuilder('user')
+            .select(['user.firstName', 'user.lastName', 'user.email', 'user.isActive'])
+            .getMany()
             .then((res) => {
             if (res.length < 1) {
                 Response.status(400).json({

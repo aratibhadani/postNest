@@ -8,7 +8,4 @@ export class PostImageEntity {
 
   @Column({ nullable: true })
   image: string;
-
-  @ManyToOne(() => PostEntity, (post) => post.images)
-  post: PostEntity;
 }

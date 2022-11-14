@@ -33,6 +33,7 @@ AppModule = __decorate([
                 database: process.env.DB_DATABASE_NAME,
                 entities: [user_entity_1.UserEntity, post_entity_1.PostEntity, post_image_entity_1.PostImageEntity],
                 synchronize: true,
+                logging: true,
             }),
             user_module_1.UserModule,
             auth_module_1.AuthModule,
