@@ -2,7 +2,7 @@ import { UserEntity } from 'src/entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 export declare class UserService {
-    createUser(body: CreateUserDto, Response: any): Promise<any>;
+    createUser(body: CreateUserDto): Promise<any>;
     checkUserByEmail(email: string): Promise<UserEntity>;
     checkUserByUserId(id: number): Promise<UserEntity>;
     findAllUser(Response: any): void;

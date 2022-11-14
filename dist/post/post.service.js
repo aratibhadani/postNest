@@ -15,32 +15,69 @@ const post_image_entity_1 = require("../entities/post-image.entity");
 const post_entity_1 = require("../entities/post.entity");
 const typeorm_1 = require("typeorm");
 const typeorm_2 = require("typeorm");
+const user_entity_1 = require("../entities/user.entity");
 let PostService = class PostService {
     constructor(connection) {
         this.connection = connection;
     }
     createPost(file, body) {
         return new Promise(async (resolve, reject) => {
-            const postRepo = (0, typeorm_1.getRepository)(post_entity_1.PostEntity);
-            const postImageRepo = (0, typeorm_1.getRepository)(post_image_entity_1.PostImageEntity);
-            postRepo.save({
-                name: body.name,
-                content: body.content,
-                user: body.userId
-            }).then((postData) => {
-                console.log(postData);
-            }).catch((err) => {
-                console.log('error-->', err);
-            });
+            const userCheck = await this.checkUserId(body.userId);
+            if (userCheck.length === 0) {
+                return resolve({
+                    message: 'User not Found',
+                    error: true
+                });
+            }
+            else {
+                const postRepo = (0, typeorm_1.getRepository)(post_entity_1.PostEntity);
+                const postImageRepo = (0, typeorm_1.getRepository)(post_image_entity_1.PostImageEntity);
+                postRepo.save({
+                    name: body.name,
+                    content: body.content,
+                    user: body.userId
+                }).then((postData) => {
+                    console.log(postData);
+                    if (!postData) {
+                        return resolve({
+                            message: 'Data not Save..',
+                            error: true
+                        });
+                    }
+                    else {
+                        file.map((item) => {
+                            postImageRepo.save({
+                                image: item.originalname,
+                                post: postData.id
+                            }).then((res) => {
+                                console.log('res', res.id);
+                            }).catch((err) => {
+                                console.log('not save this post image', err);
+                            });
+                        });
+                        return resolve({
+                            message: 'Data Save..',
+                            error: false
+                        });
+                    }
+                }).catch((err) => {
+                    console.log('error-->', err);
+                });
+            }
         });
     }
     checkUserId(userId) {
+        return (0, typeorm_1.getRepository)(user_entity_1.UserEntity).find({ where: { id: userId } });
+    }
+    checkPostId(postId) {
+        return (0, typeorm_1.getRepository)(post_entity_1.PostEntity).find({ where: { id: postId } });
     }
     findAllPost(Response) {
         const post_repo = (0, typeorm_1.getRepository)(post_entity_1.PostEntity);
         post_repo.createQueryBuilder('post')
+            .leftJoinAndSelect("post.images", "postimage")
             .leftJoinAndSelect("post.user", "user")
-            .select(['post.name', 'post.content', 'user.firstName', 'user.lastName', 'user.email', 'user.isActive'])
+            .select(['post.name', 'post.content', 'postimage.image', 'user.firstName', 'user.lastName', 'user.email', 'user.isActive'])
             .getMany()
             .then((res) => {
             if (res.length == 0) {
@@ -64,13 +101,132 @@ let PostService = class PostService {
         });
     }
     findOne(id) {
-        return `This action returns a #${id} post`;
+        return new Promise((resolve, reject) => {
+            const post_repo = (0, typeorm_1.getRepository)(post_entity_1.PostEntity);
+            post_repo.createQueryBuilder('post')
+                .leftJoinAndSelect("post.images", "postimage")
+                .leftJoinAndSelect("post.user", "user")
+                .select(['post.name', 'post.content', 'postimage.image', 'user.firstName', 'user.lastName', 'user.email', 'user.isActive'])
+                .getMany()
+                .then((res) => {
+                if (res.length == 0) {
+                    return resolve({
+                        error: true,
+                        message: 'Post Data not Found',
+                    });
+                }
+                else {
+                    return resolve({
+                        data: res,
+                        error: false,
+                        message: 'Post Data get',
+                    });
+                }
+            })
+                .catch((err) => {
+                return reject({
+                    data: null,
+                    message: `Internal server error`,
+                });
+            });
+        });
     }
-    update(id, updatePostDto) {
-        return `This action updates a #${id} post`;
+    updatePost(id, body, file) {
+        return new Promise(async (resolve, reject) => {
+            const postExits = await this.checkPostId(id);
+            if (!postExits) {
+                return resolve({
+                    error: true,
+                    message: 'Post Data not Found',
+                });
+            }
+            else {
+                const postRepo = (0, typeorm_1.getRepository)(post_entity_1.PostEntity);
+                postRepo.createQueryBuilder()
+                    .update(post_entity_1.PostEntity)
+                    .set({ name: body.name, content: body.content })
+                    .where("id = :id", { id })
+                    .execute()
+                    .then((postData) => {
+                    if (!postData) {
+                        return resolve({
+                            message: 'Data not Save..',
+                            error: true
+                        });
+                    }
+                    else {
+                        const postImageRepo = (0, typeorm_1.getRepository)(post_image_entity_1.PostImageEntity);
+                        file.map((item) => {
+                            postImageRepo.save({
+                                image: item.originalname,
+                                post: id
+                            }).then((res) => {
+                            }).catch((err) => {
+                                console.log('not save this post image', err);
+                            });
+                        });
+                        return resolve({
+                            message: 'Data Save..',
+                            error: false
+                        });
+                    }
+                })
+                    .catch((err) => {
+                    console.log(err, 'err');
+                });
+            }
+        });
     }
-    remove(id) {
-        return `This action removes a #${id} post`;
+    removePost(id) {
+        return new Promise(async (resolve, reject) => {
+            const postExits = await this.checkPostId(id);
+            if (postExits.length === 0) {
+                return resolve({
+                    error: false,
+                    message: 'Post Data not Found',
+                });
+            }
+            else {
+                const postImageRepo = (0, typeorm_1.getRepository)(post_image_entity_1.PostImageEntity);
+                const data = await postImageRepo.createQueryBuilder('post_image')
+                    .leftJoinAndSelect("post_image.post", "post")
+                    .select(['post_image.id'])
+                    .where("post.id = :postid", { postid: id })
+                    .getMany();
+                const dataArr = data.map(object => object.id);
+                console.log(dataArr);
+                if (dataArr.length == 0) {
+                    return resolve({
+                        error: true,
+                        message: 'No any PostImage available this post',
+                    });
+                }
+                else {
+                    await (0, typeorm_1.getConnection)()
+                        .createQueryBuilder()
+                        .delete()
+                        .from(post_image_entity_1.PostImageEntity)
+                        .where("id IN (:...id)", { id: dataArr })
+                        .execute()
+                        .then(async () => {
+                        await (0, typeorm_1.getConnection)().createQueryBuilder()
+                            .delete().from(post_entity_1.PostEntity)
+                            .where('id=:id', { id: id })
+                            .execute();
+                        return resolve({
+                            error: false,
+                            message: 'Post Data Deleted',
+                        });
+                    })
+                        .catch(() => {
+                        return resolve({
+                            error: true,
+                            message: 'Post Data not Deleted',
+                        });
+                    });
+                }
+            }
+        });
     }
 };
 PostService = __decorate([

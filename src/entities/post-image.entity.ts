@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { PostEntity } from './post.entity';
 
 @Entity({ name: 'postimage' })
@@ -8,4 +8,8 @@ export class PostImageEntity {
 
   @Column({ nullable: true })
   image: string;
+
+  @ManyToOne(() => PostEntity, (post) => post.images)
+  @JoinColumn({ name: "post_id" })
+  post: number;
 }

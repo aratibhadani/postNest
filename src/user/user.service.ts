@@ -1,4 +1,5 @@
 import { HttpCode, Injectable } from '@nestjs/common';
+import { PostEntity } from 'src/entities/post.entity';
 import { UserEntity } from 'src/entities/user.entity';
 import { encryptPassword } from 'src/helper/common';
 import { getConnection, getRepository } from 'typeorm';
@@ -7,37 +8,41 @@ import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UserService {
-  async createUser(body:CreateUserDto, Response: any): Promise<any> {
-    const { firstName, lastName, email, contactno, password, isActive } = body;
-    const user_repo = getRepository(UserEntity);
-
-    const userCheck = await this.checkUserByEmail(email);
-    if (userCheck) {
-      return Response.status(400).json({
-        data: null,
-        message: 'User Exists on this Email',
-      });
-    } else {
-      const hashPassword: any = await encryptPassword(password);
-      user_repo
-        .save({
-          firstName,
-          lastName,
-          isActive,
-          email,
-          password: hashPassword,
-          contactno,
-        })
-        .then((res) => {
-          return Response.status(200).json({
-            data: null,
-            message: 'User Created successfully',
-          });
-        })
-        .catch((err) => {
-          console.log(err);
+  async createUser(body:CreateUserDto): Promise<any> {
+    return new Promise(async (resolve, reject) => {
+      const { firstName, lastName, email, contactno, password, isActive } = body;
+      const user_repo = getRepository(UserEntity);
+  
+      const userCheck = await this.checkUserByEmail(email);
+      if (userCheck) {
+        return resolve({
+          data: null,
+          message: 'User Exists on this Email',
+          error:true
         });
-    }
+      } else {
+        const hashPassword: any = await encryptPassword(password);
+        user_repo
+          .save({
+            firstName,
+            lastName,
+            isActive,
+            email,
+            password: hashPassword,
+            contactno,
+          })
+          .then((res) => {
+            return resolve({
+              data: null,
+              message: 'User Created successfully',
+              error:false
+            });
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      }
+    });
   }
 
   checkUserByEmail(email: string) {
@@ -135,6 +140,13 @@ export class UserService {
       await user_repo
         .delete({ id })
         .then((res) => {
+
+          // getRepository(UserEntity).delete({id})
+          // .then((res)=>{
+          //     console.log(res,'responce');
+
+          // })
+
           Response.status(200).json({
             data: null,
             message: `User Deleted successfully`,

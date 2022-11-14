@@ -33,17 +33,29 @@ export class UserController {
 
   @Post('add')
   @UsePipes(new ValidationPipe())
-  create(@Body() body: CreateUserDto, @Res() response: Response): any {
+  async create(@Body() body: CreateUserDto, @Res() response: Response): Promise<any> {
     /*
     Api Endpoint :user/add
     parameter :firstname,lastname,email,contactno,isactive,password
     */
-    return this.userService.createUser(body, response);
+    const resObj= await this.userService.createUser(body);
+    if (resObj.error) {
+      return response.status(HttpStatus.BAD_REQUEST).send({
+        message: resObj.message,
+        data: resObj.data,
+        error: resObj.error
+      })
+    } else {
+      return response.status(HttpStatus.OK).send({
+        message: resObj.message,
+        data: resObj.data,
+        error: resObj.error
+      })
+    }
   }
 
   @Get()
   findAll(
-    //set default value in query param
     @Query('page', new DefaultValuePipe(0)) page: number,
     @Res() response: Response,
   ) {
@@ -52,18 +64,13 @@ export class UserController {
 
   @Get(':id')
   findOne(
-    @Param(
-      'id',
-      //normal case @Param('id',ParseIntPipe) id :number)
-      //set custome status code
-      new ParseIntPipe({ errorHttpStatusCode: HttpStatus.NOT_ACCEPTABLE }),
-    )
+    @Param('id',
+      new ParseIntPipe({ errorHttpStatusCode: HttpStatus.NOT_ACCEPTABLE }))
     id: number,
     @Res() response: Response,
     @GetUser() user: UserEntity,
   ) {
-    console.log(user, 'user');
-    return this.userService.findOneUserById(+id, response);
+    return this.userService.findOneUserById(+id,response);
   }
 
   @Put(':id')

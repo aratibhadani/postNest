@@ -12,37 +12,41 @@ const user_entity_1 = require("../entities/user.entity");
 const common_2 = require("../helper/common");
 const typeorm_1 = require("typeorm");
 let UserService = class UserService {
-    async createUser(body, Response) {
-        const { firstName, lastName, email, contactno, password, isActive } = body;
-        const user_repo = (0, typeorm_1.getRepository)(user_entity_1.UserEntity);
-        const userCheck = await this.checkUserByEmail(email);
-        if (userCheck) {
-            return Response.status(400).json({
-                data: null,
-                message: 'User Exists on this Email',
-            });
-        }
-        else {
-            const hashPassword = await (0, common_2.encryptPassword)(password);
-            user_repo
-                .save({
-                firstName,
-                lastName,
-                isActive,
-                email,
-                password: hashPassword,
-                contactno,
-            })
-                .then((res) => {
-                return Response.status(200).json({
+    async createUser(body) {
+        return new Promise(async (resolve, reject) => {
+            const { firstName, lastName, email, contactno, password, isActive } = body;
+            const user_repo = (0, typeorm_1.getRepository)(user_entity_1.UserEntity);
+            const userCheck = await this.checkUserByEmail(email);
+            if (userCheck) {
+                return resolve({
                     data: null,
-                    message: 'User Created successfully',
+                    message: 'User Exists on this Email',
+                    error: true
                 });
-            })
-                .catch((err) => {
-                console.log(err);
-            });
-        }
+            }
+            else {
+                const hashPassword = await (0, common_2.encryptPassword)(password);
+                user_repo
+                    .save({
+                    firstName,
+                    lastName,
+                    isActive,
+                    email,
+                    password: hashPassword,
+                    contactno,
+                })
+                    .then((res) => {
+                    return resolve({
+                        data: null,
+                        message: 'User Created successfully',
+                        error: false
+                    });
+                })
+                    .catch((err) => {
+                    console.log(err);
+                });
+            }
+        });
     }
     checkUserByEmail(email) {
         const user_repo = (0, typeorm_1.getRepository)(user_entity_1.UserEntity);

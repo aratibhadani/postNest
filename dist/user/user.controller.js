@@ -25,14 +25,27 @@ let UserController = class UserController {
     constructor(userService) {
         this.userService = userService;
     }
-    create(body, response) {
-        return this.userService.createUser(body, response);
+    async create(body, response) {
+        const resObj = await this.userService.createUser(body);
+        if (resObj.error) {
+            return response.status(common_1.HttpStatus.BAD_REQUEST).send({
+                message: resObj.message,
+                data: resObj.data,
+                error: resObj.error
+            });
+        }
+        else {
+            return response.status(common_1.HttpStatus.OK).send({
+                message: resObj.message,
+                data: resObj.data,
+                error: resObj.error
+            });
+        }
     }
     findAll(page, response) {
         return this.userService.findAllUser(response);
     }
     findOne(id, response, user) {
-        console.log(user, 'user');
         return this.userService.findOneUserById(+id, response);
     }
     update(id, updateUserDto, response) {
@@ -49,7 +62,7 @@ __decorate([
     __param(1, (0, common_1.Res)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [create_user_dto_1.CreateUserDto, Object]),
-    __metadata("design:returntype", Object)
+    __metadata("design:returntype", Promise)
 ], UserController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),

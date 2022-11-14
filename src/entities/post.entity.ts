@@ -13,18 +13,11 @@ export class PostEntity {
   @Column({ nullable: true })
   content: string;
 
-  //way 1
+  
   @ManyToOne(() => UserEntity, (user) => user.posts)
   @JoinColumn({ name: "user_id" })
   user: number;
 
-  //way2
-  // @ManyToOne(() => UserEntity, (user:UserEntity) => user.posts)
-  // @JoinColumn()
-  // user: UserEntity;
-  // @Column()
-  // @RelationId((post: PostEntity) => post.user)
-  // user_id: number;
-
-  
+  @OneToMany(() => PostImageEntity, (postimage) => postimage.post)
+  images: PostImageEntity[];
 }
