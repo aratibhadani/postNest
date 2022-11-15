@@ -1,8 +1,11 @@
+import { user_status } from 'src/constants/pagination.enum';
 import {
   Column,
+  CreateDateColumn,
   Entity,
   OneToMany,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { ArticalEntity } from './artical.entity';
 import { PostEntity } from './post.entity';
@@ -12,49 +15,45 @@ export class UserEntity {
   @PrimaryGeneratedColumn({ type: 'int' })
   id: number;
 
-  @Column({ type: 'varchar', length: 100, nullable: false })
-  firstName: string;
+  @Column({ type: 'varchar', length: 30, nullable: false })
+  first_name: string;
 
-  @Column({ type: 'varchar', length: 100, nullable: false })
-  lastName: string;
+  @Column({ type: 'varchar', length: 30, nullable: false })
+  last_name: string;
 
-  @Column({ type: 'varchar', length: 100, nullable: false })
+  @Column({ type: 'varchar', length: 30, nullable: false })
   email: string;
 
-  @Column()
-  contactno: string;
+  @Column({ type: 'varchar', length: 20, nullable: false })
+  contact_no: string;
 
-  @Column({ nullable: true })
+  @Column({type: 'varchar', length: 100, nullable: false })
   password: string;
 
   @Column({ nullable: true })
-  loginToken: string;
+  login_token: string;
 
   @Column({ nullable: true })
-  forgetToken: string;
+  forget_token: string;
 
-  @Column({ default: true })
-  isActive: boolean;
+  @Column({
+    type: 'enum',
+    enum: [user_status.ACTIVED, user_status.INACTIVED],
+    default: user_status.ACTIVED,
+    nullable: false,
+  })
+  is_active: user_status;
 
-
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  createdAt: Date
-
-  @Column({ type: 'timestamp', default: () => "CURRENT_TIMESTAMP" })
-  updatedAt: Date
-  
   @OneToMany(() => PostEntity, (post) => post.user)
   posts: PostEntity[];
 
   @OneToMany(() => ArticalEntity, (artical) => artical.user)
   articals: ArticalEntity[];
 
-  // @AfterInsert()
-  // async hashPassword() {
-  //   this.password = await bcrypt.hash(this.password, 10);
-  // }
 
-  // async validatePassword(password: string): Promise<boolean> {
-  //   return bcrypt.compare(password, this.password);
-  // }
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP',nullable: false })
+  createdAt: Date;
+
+  @Column({ type: 'timestamp', default: () => "CURRENT_TIMESTAMP" ,nullable: false,onUpdate: "CURRENT_TIMESTAMP" })
+  updatedAt: Date;
 }

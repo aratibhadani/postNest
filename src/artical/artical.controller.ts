@@ -15,6 +15,7 @@ import {
   HttpStatus,
   ParseIntPipe,
   Put,
+  Query,
 } from '@nestjs/common';
 import { ArticalService } from './artical.service';
 import { CreateArticalDto } from './dto/create-artical.dto';
@@ -27,6 +28,7 @@ import {
 } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { Response } from 'express';
+import { PaginationParamsDTO } from 'src/config/pagination.dto';
 
 @ApiTags(swaggerTags.artical)
 @Controller('artical')
@@ -38,7 +40,7 @@ export class ArticalController {
   @UseInterceptors(
     FilesInterceptor('file', 20, {
       storage: diskStorage({
-        destination: './uploads/',
+        destination: './uploads/artical/',
       }),
     }),
   )
@@ -53,7 +55,7 @@ export class ArticalController {
         error: true,
       });
     }
-    const resObj = await this.articalService.createPost(file, body);
+    const resObj = await this.articalService.createArtical(file, body);
     if (resObj.error) {
       return response.status(HttpStatus.BAD_REQUEST).send({
         message: resObj.message,
@@ -70,8 +72,10 @@ export class ArticalController {
   }
 
   @Get()
-  findAll(@Res() response: Response) {
-    return this.articalService.findAllPost(response);
+  findAll(
+    @Query() query: PaginationParamsDTO,
+    @Res() response: Response) {
+    return this.articalService.findAllArtical(query,response);
   }
 
   @Get(':id')
@@ -121,7 +125,7 @@ export class ArticalController {
         error: true,
       });
     }
-    const resObj = await this.articalService.updatePost(+id, updatePostDto, file);
+    const resObj = await this.articalService.updateArtical(+id, updatePostDto, file);
     if (resObj.error) {
       return response.status(HttpStatus.BAD_REQUEST).send({
         message: resObj.message,
@@ -142,7 +146,7 @@ export class ArticalController {
     @Param('id', new ParseIntPipe({ errorHttpStatusCode: HttpStatus.NOT_ACCEPTABLE })) id: number,
     @Res() response: Response
   ): Promise<any> {
-    const resObj = await this.articalService.removePost(+id);
+    const resObj = await this.articalService.removeArtical(+id);
     if (resObj.error) {
       return response.status(HttpStatus.BAD_REQUEST).send({
         message: resObj.message,

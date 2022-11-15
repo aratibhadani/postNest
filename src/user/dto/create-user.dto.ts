@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsEmail, IsNotEmpty, IsString } from 'class-validator';
+import { IsBoolean, IsEmail, IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 export class CreateUserDto {
   @ApiProperty({
@@ -49,9 +49,9 @@ export class CreateUserDto {
   @ApiProperty({
     type: Boolean,
     description: 'enter status',
-    example: true,
+    example: 1,
   })
-  @IsNotEmpty({ message: 'Status is required' })
-  @IsBoolean()
+  @IsNotEmpty({ message: 'Status is required give value 0: inactive or 1 :active user' })
+  @IsNumber()
   isActive: boolean;
 }

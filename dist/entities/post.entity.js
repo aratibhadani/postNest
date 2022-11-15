@@ -20,22 +20,32 @@ __decorate([
     __metadata("design:type", Number)
 ], PostEntity.prototype, "id", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
+    (0, typeorm_1.Column)({ type: 'varchar', length: 150, nullable: false }),
     __metadata("design:type", String)
 ], PostEntity.prototype, "name", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
+    (0, typeorm_1.Column)({ type: 'text', nullable: false }),
     __metadata("design:type", String)
 ], PostEntity.prototype, "content", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => user_entity_1.UserEntity, (user) => user.posts),
+    (0, typeorm_1.ManyToOne)(() => user_entity_1.UserEntity, (user) => user.posts, {
+        nullable: false,
+    }),
     (0, typeorm_1.JoinColumn)({ name: "user_id" }),
     __metadata("design:type", Number)
 ], PostEntity.prototype, "user", void 0);
 __decorate([
-    (0, typeorm_1.OneToMany)(() => post_image_entity_1.PostImageEntity, (postimage) => postimage.post),
+    (0, typeorm_1.OneToMany)(() => post_image_entity_1.PostImageEntity, (images) => images.post),
     __metadata("design:type", Array)
 ], PostEntity.prototype, "images", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP', nullable: false }),
+    __metadata("design:type", Date)
+], PostEntity.prototype, "createdAt", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'timestamp', default: () => "CURRENT_TIMESTAMP", nullable: false, onUpdate: "CURRENT_TIMESTAMP" }),
+    __metadata("design:type", Date)
+], PostEntity.prototype, "updatedAt", void 0);
 PostEntity = __decorate([
     (0, typeorm_1.Entity)({ name: 'post' })
 ], PostEntity);

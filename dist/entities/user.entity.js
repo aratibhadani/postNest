@@ -10,6 +10,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserEntity = void 0;
+const pagination_enum_1 = require("../constants/pagination.enum");
 const typeorm_1 = require("typeorm");
 const artical_entity_1 = require("./artical.entity");
 const post_entity_1 = require("./post.entity");
@@ -20,45 +21,42 @@ __decorate([
     __metadata("design:type", Number)
 ], UserEntity.prototype, "id", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'varchar', length: 100, nullable: false }),
+    (0, typeorm_1.Column)({ type: 'varchar', length: 30, nullable: false }),
     __metadata("design:type", String)
-], UserEntity.prototype, "firstName", void 0);
+], UserEntity.prototype, "first_name", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'varchar', length: 100, nullable: false }),
+    (0, typeorm_1.Column)({ type: 'varchar', length: 30, nullable: false }),
     __metadata("design:type", String)
-], UserEntity.prototype, "lastName", void 0);
+], UserEntity.prototype, "last_name", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'varchar', length: 100, nullable: false }),
+    (0, typeorm_1.Column)({ type: 'varchar', length: 30, nullable: false }),
     __metadata("design:type", String)
 ], UserEntity.prototype, "email", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)({ type: 'varchar', length: 20, nullable: false }),
     __metadata("design:type", String)
-], UserEntity.prototype, "contactno", void 0);
+], UserEntity.prototype, "contact_no", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
+    (0, typeorm_1.Column)({ type: 'varchar', length: 100, nullable: false }),
     __metadata("design:type", String)
 ], UserEntity.prototype, "password", void 0);
 __decorate([
     (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
-], UserEntity.prototype, "loginToken", void 0);
+], UserEntity.prototype, "login_token", void 0);
 __decorate([
     (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
-], UserEntity.prototype, "forgetToken", void 0);
+], UserEntity.prototype, "forget_token", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ default: true }),
-    __metadata("design:type", Boolean)
-], UserEntity.prototype, "isActive", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' }),
-    __metadata("design:type", Date)
-], UserEntity.prototype, "createdAt", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ type: 'timestamp', default: () => "CURRENT_TIMESTAMP" }),
-    __metadata("design:type", Date)
-], UserEntity.prototype, "updatedAt", void 0);
+    (0, typeorm_1.Column)({
+        type: 'enum',
+        enum: [pagination_enum_1.user_status.ACTIVED, pagination_enum_1.user_status.INACTIVED],
+        default: pagination_enum_1.user_status.ACTIVED,
+        nullable: false,
+    }),
+    __metadata("design:type", Number)
+], UserEntity.prototype, "is_active", void 0);
 __decorate([
     (0, typeorm_1.OneToMany)(() => post_entity_1.PostEntity, (post) => post.user),
     __metadata("design:type", Array)
@@ -67,6 +65,14 @@ __decorate([
     (0, typeorm_1.OneToMany)(() => artical_entity_1.ArticalEntity, (artical) => artical.user),
     __metadata("design:type", Array)
 ], UserEntity.prototype, "articals", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP', nullable: false }),
+    __metadata("design:type", Date)
+], UserEntity.prototype, "createdAt", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'timestamp', default: () => "CURRENT_TIMESTAMP", nullable: false, onUpdate: "CURRENT_TIMESTAMP" }),
+    __metadata("design:type", Date)
+], UserEntity.prototype, "updatedAt", void 0);
 UserEntity = __decorate([
     (0, typeorm_1.Entity)({ name: 'users' })
 ], UserEntity);

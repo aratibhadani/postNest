@@ -11,34 +11,36 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ArticalService = void 0;
 const common_1 = require("@nestjs/common");
-const post_image_entity_1 = require("../entities/post-image.entity");
-const post_entity_1 = require("../entities/post.entity");
 const typeorm_1 = require("typeorm");
 const typeorm_2 = require("typeorm");
-const user_entity_1 = require("../entities/user.entity");
+const user_service_1 = require("../user/user.service");
+const artical_entity_1 = require("../entities/artical.entity");
+const artical_image_entity_1 = require("../entities/artical-image.entity");
+const pagination_enum_1 = require("../constants/pagination.enum");
 let ArticalService = class ArticalService {
-    constructor(connection) {
+    constructor(connection, userService) {
         this.connection = connection;
+        this.userService = userService;
     }
-    createPost(file, body) {
+    createArtical(file, body) {
         return new Promise(async (resolve, reject) => {
-            const userCheck = await this.checkUserId(body.userId);
-            if (userCheck.length === 0) {
+            const userCheck = await this.userService.checkUserByUserId(body.userId);
+            if (!userCheck) {
                 return resolve({
                     message: 'User not Found',
                     error: true
                 });
             }
             else {
-                const postRepo = (0, typeorm_1.getRepository)(post_entity_1.PostEntity);
-                const postImageRepo = (0, typeorm_1.getRepository)(post_image_entity_1.PostImageEntity);
-                postRepo.save({
+                const articalRepo = (0, typeorm_1.getRepository)(artical_entity_1.ArticalEntity);
+                const articalImageRepo = (0, typeorm_1.getRepository)(artical_image_entity_1.ArticalImageEntity);
+                articalRepo.save({
                     name: body.name,
                     content: body.content,
                     user: body.userId
-                }).then((postData) => {
-                    console.log(postData);
-                    if (!postData) {
+                }).then((articalData) => {
+                    console.log(articalData);
+                    if (!articalData) {
                         return resolve({
                             message: 'Data not Save..',
                             error: true
@@ -46,13 +48,13 @@ let ArticalService = class ArticalService {
                     }
                     else {
                         file.map((item) => {
-                            postImageRepo.save({
+                            articalImageRepo.save({
                                 image: item.originalname,
-                                post: postData.id
+                                artical: articalData.id
                             }).then((res) => {
                                 console.log('res', res.id);
                             }).catch((err) => {
-                                console.log('not save this post image', err);
+                                console.log('not save this artical image', err);
                             });
                         });
                         return resolve({
@@ -66,60 +68,63 @@ let ArticalService = class ArticalService {
             }
         });
     }
-    checkUserId(userId) {
-        return (0, typeorm_1.getRepository)(user_entity_1.UserEntity).find({ where: { id: userId } });
+    checkArticalId(articalId) {
+        return (0, typeorm_1.getRepository)(artical_entity_1.ArticalEntity).findOne({ where: { id: articalId } });
     }
-    checkPostId(postId) {
-        return (0, typeorm_1.getRepository)(post_entity_1.PostEntity).find({ where: { id: postId } });
-    }
-    findAllPost(Response) {
-        const post_repo = (0, typeorm_1.getRepository)(post_entity_1.PostEntity);
-        post_repo.createQueryBuilder('post')
-            .leftJoinAndSelect("post.images", "postimage")
-            .leftJoinAndSelect("post.user", "user")
-            .select(['post.name', 'post.content', 'postimage.image', 'user.firstName', 'user.lastName', 'user.email', 'user.isActive'])
-            .getMany()
-            .then((res) => {
-            if (res.length == 0) {
-                return Response.status(common_1.HttpStatus.NOT_FOUND).send({
-                    data: null,
-                    message: 'Post Data not Found',
-                });
-            }
+    async findAllArtical(query, Response) {
+        const artical_repo = (0, typeorm_1.getRepository)(artical_entity_1.ArticalEntity);
+        const take = query.count != undefined && query.count > 0 ? query.count : pagination_enum_1.default_count;
+        const skip = query.page != undefined && query.page > 0 ? (query.page - 1) : 0;
+        let builder = artical_repo.createQueryBuilder('artical')
+            .leftJoinAndSelect("artical.images", "articalimage")
+            .leftJoinAndSelect("artical.user", "user")
+            .select(['artical.name', 'artical.content', 'articalimage.image', 'user.first_name', 'user.last_name', 'user.email', 'user.is_active']);
+        if (query.sortby && query.sort) {
+            let sortOrder = query.sort ? query.sort.toUpperCase() : pagination_enum_1.default_sort_order;
+            if (sortOrder == 'ASC')
+                builder = builder.orderBy(`artical.${query.sortby}`, 'ASC');
             else {
-                return Response.status(common_1.HttpStatus.OK).send({
-                    data: res,
-                    message: 'Post Data get',
-                });
+                builder = builder.orderBy(`artical.${query.sortby}`, 'DESC');
             }
-        })
-            .catch((err) => {
-            Response.status(500).json({
-                data: null,
-                message: `Internal server error`,
-            });
+        }
+        else {
+            builder = builder.orderBy('artical.createdAt', 'DESC');
+        }
+        if (query.search) {
+            builder = builder.where("artical.name like :name", { name: `%${query.search}%` })
+                .orWhere("artical.content like :content", { content: `%${query.search}%` });
+        }
+        const users = await builder.getMany();
+        const total = await builder.getCount();
+        Response.status(200).json({
+            data: {
+                list: users,
+                total
+            },
+            message: `Artical Data successfully`,
         });
     }
     findOne(id) {
         return new Promise((resolve, reject) => {
-            const post_repo = (0, typeorm_1.getRepository)(post_entity_1.PostEntity);
-            post_repo.createQueryBuilder('post')
-                .leftJoinAndSelect("post.images", "postimage")
-                .leftJoinAndSelect("post.user", "user")
-                .select(['post.name', 'post.content', 'postimage.image', 'user.firstName', 'user.lastName', 'user.email', 'user.isActive'])
-                .getMany()
+            const artical_repo = (0, typeorm_1.getRepository)(artical_entity_1.ArticalEntity);
+            artical_repo.createQueryBuilder('artical')
+                .leftJoinAndSelect("artical.images", "articalimage")
+                .leftJoinAndSelect("artical.user", "user")
+                .select(['artical.id', 'artical.name', 'artical.content', 'articalimage.image', 'user.first_name', 'user.last_name', 'user.email', 'user.is_active'])
+                .where("artical.id = :articalid", { articalid: id })
+                .getOne()
                 .then((res) => {
-                if (res.length == 0) {
+                if (!res) {
                     return resolve({
                         error: true,
-                        message: 'Post Data not Found',
+                        message: 'Artical Data not Found',
                     });
                 }
                 else {
                     return resolve({
                         data: res,
                         error: false,
-                        message: 'Post Data get',
+                        message: 'Artical Data get',
                     });
                 }
             })
@@ -131,38 +136,39 @@ let ArticalService = class ArticalService {
             });
         });
     }
-    updatePost(id, body, file) {
+    updateArtical(id, body, file) {
         return new Promise(async (resolve, reject) => {
-            const postExits = await this.checkPostId(id);
-            if (!postExits) {
+            const articalExits = await this.checkArticalId(id);
+            console.log(articalExits, 'zdsadsa');
+            if (!articalExits) {
                 return resolve({
                     error: true,
-                    message: 'Post Data not Found',
+                    message: 'Artical Data not Found',
                 });
             }
             else {
-                const postRepo = (0, typeorm_1.getRepository)(post_entity_1.PostEntity);
-                postRepo.createQueryBuilder()
-                    .update(post_entity_1.PostEntity)
+                const articalRepo = (0, typeorm_1.getRepository)(artical_entity_1.ArticalEntity);
+                articalRepo.createQueryBuilder()
+                    .update(artical_entity_1.ArticalEntity)
                     .set({ name: body.name, content: body.content })
                     .where("id = :id", { id })
                     .execute()
-                    .then((postData) => {
-                    if (!postData) {
+                    .then((articalData) => {
+                    if (!articalData) {
                         return resolve({
                             message: 'Data not Save..',
                             error: true
                         });
                     }
                     else {
-                        const postImageRepo = (0, typeorm_1.getRepository)(post_image_entity_1.PostImageEntity);
+                        const articalImageRepo = (0, typeorm_1.getRepository)(artical_image_entity_1.ArticalImageEntity);
                         file.map((item) => {
-                            postImageRepo.save({
+                            articalImageRepo.save({
                                 image: item.originalname,
-                                post: id
+                                artical: id
                             }).then((res) => {
                             }).catch((err) => {
-                                console.log('not save this post image', err);
+                                console.log('not save this artical image', err);
                             });
                         });
                         return resolve({
@@ -177,51 +183,51 @@ let ArticalService = class ArticalService {
             }
         });
     }
-    removePost(id) {
+    removeArtical(id) {
         return new Promise(async (resolve, reject) => {
-            const postExits = await this.checkPostId(id);
-            if (postExits.length === 0) {
+            const articalExits = await this.checkArticalId(id);
+            if (!articalExits) {
                 return resolve({
                     error: false,
-                    message: 'Post Data not Found',
+                    message: 'Artical Data not Found',
                 });
             }
             else {
-                const postImageRepo = (0, typeorm_1.getRepository)(post_image_entity_1.PostImageEntity);
-                const data = await postImageRepo.createQueryBuilder('post_image')
-                    .leftJoinAndSelect("post_image.post", "post")
-                    .select(['post_image.id'])
-                    .where("post.id = :postid", { postid: id })
+                const articalImageRepo = (0, typeorm_1.getRepository)(artical_image_entity_1.ArticalImageEntity);
+                const data = await articalImageRepo.createQueryBuilder('artical_image')
+                    .leftJoinAndSelect("artical_image.artical", "artical")
+                    .select(['artical_image.id'])
+                    .where("artical.id = :articalid", { articalid: id })
                     .getMany();
                 const dataArr = data.map(object => object.id);
                 console.log(dataArr);
                 if (dataArr.length == 0) {
                     return resolve({
                         error: true,
-                        message: 'No any PostImage available this post',
+                        message: 'No any ArticalImage available this artical',
                     });
                 }
                 else {
                     await (0, typeorm_1.getConnection)()
                         .createQueryBuilder()
                         .delete()
-                        .from(post_image_entity_1.PostImageEntity)
+                        .from(artical_image_entity_1.ArticalImageEntity)
                         .where("id IN (:...id)", { id: dataArr })
                         .execute()
                         .then(async () => {
                         await (0, typeorm_1.getConnection)().createQueryBuilder()
-                            .delete().from(post_entity_1.PostEntity)
+                            .delete().from(artical_entity_1.ArticalEntity)
                             .where('id=:id', { id: id })
                             .execute();
                         return resolve({
                             error: false,
-                            message: 'Post Data Deleted',
+                            message: 'Artical Data Deleted',
                         });
                     })
                         .catch(() => {
                         return resolve({
                             error: true,
-                            message: 'Post Data not Deleted',
+                            message: 'Artical Data not Deleted',
                         });
                     });
                 }
@@ -231,7 +237,8 @@ let ArticalService = class ArticalService {
 };
 ArticalService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [typeorm_2.Connection])
+    __metadata("design:paramtypes", [typeorm_2.Connection,
+        user_service_1.UserService])
 ], ArticalService);
 exports.ArticalService = ArticalService;
 //# sourceMappingURL=artical.service.js.map

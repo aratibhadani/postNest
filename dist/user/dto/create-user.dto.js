@@ -67,10 +67,10 @@ __decorate([
     (0, swagger_1.ApiProperty)({
         type: Boolean,
         description: 'enter status',
-        example: true,
+        example: 1,
     }),
-    (0, class_validator_1.IsNotEmpty)({ message: 'Status is required' }),
-    (0, class_validator_1.IsBoolean)(),
+    (0, class_validator_1.IsNotEmpty)({ message: 'Status is required give value 0: inactive or 1 :active user' }),
+    (0, class_validator_1.IsNumber)(),
     __metadata("design:type", Boolean)
 ], CreateUserDto.prototype, "isActive", void 0);
 exports.CreateUserDto = CreateUserDto;

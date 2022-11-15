@@ -31,7 +31,7 @@ export class AuthService {
             await getRepository(UserEntity)
               .createQueryBuilder('user')
               .update()
-              .set({ loginToken: token })
+              .set({ login_token: token })
               .where('id = :id', { id: user.id })
               .execute()
               .then(() => {

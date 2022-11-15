@@ -20,15 +20,17 @@ __decorate([
     __metadata("design:type", Number)
 ], ArticalEntity.prototype, "id", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
+    (0, typeorm_1.Column)({ type: 'varchar', length: 150, nullable: false }),
     __metadata("design:type", String)
 ], ArticalEntity.prototype, "name", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
+    (0, typeorm_1.Column)({ type: 'text', nullable: false }),
     __metadata("design:type", String)
 ], ArticalEntity.prototype, "content", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => user_entity_1.UserEntity, (user) => user.articals),
+    (0, typeorm_1.ManyToOne)(() => user_entity_1.UserEntity, (user) => user.articals, {
+        nullable: false,
+    }),
     (0, typeorm_1.JoinColumn)({ name: "user_id" }),
     __metadata("design:type", Number)
 ], ArticalEntity.prototype, "user", void 0);
@@ -36,6 +38,14 @@ __decorate([
     (0, typeorm_1.OneToMany)(() => artical_image_entity_1.ArticalImageEntity, (articalimage) => articalimage.artical),
     __metadata("design:type", Array)
 ], ArticalEntity.prototype, "images", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP', nullable: false }),
+    __metadata("design:type", Date)
+], ArticalEntity.prototype, "createdAt", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'timestamp', default: () => "CURRENT_TIMESTAMP", nullable: false, onUpdate: "CURRENT_TIMESTAMP" }),
+    __metadata("design:type", Date)
+], ArticalEntity.prototype, "updatedAt", void 0);
 ArticalEntity = __decorate([
     (0, typeorm_1.Entity)({ name: 'artical' })
 ], ArticalEntity);

@@ -24,6 +24,7 @@ import { swaggerTags } from 'src/config/swaggerconfig';
 import { GetUser } from 'src/helper/get-user.decorator';
 import { UserEntity } from 'src/entities/user.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { PaginationParamsDTO } from 'src/config/pagination.dto';
 
 @ApiTags(swaggerTags.user)
 // @ApiBearerAuth('authorization')
@@ -56,10 +57,12 @@ export class UserController {
 
   @Get()
   findAll(
-    @Query('page', new DefaultValuePipe(0)) page: number,
+    @Query() query: PaginationParamsDTO,
     @Res() response: Response,
   ) {
-    return this.userService.findAllUser(response);
+    console.log(query);
+    
+    return this.userService.findAllUser(query,response);
   }
 
   @Get(':id')

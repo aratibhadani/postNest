@@ -1,5 +1,6 @@
 import { HttpCode, Injectable } from '@nestjs/common';
-import { PostEntity } from 'src/entities/post.entity';
+import { PaginationParamsDTO } from 'src/config/pagination.dto';
+import { default_count, default_sort_order, user_status } from 'src/constants/pagination.enum';
 import { UserEntity } from 'src/entities/user.entity';
 import { encryptPassword } from 'src/helper/common';
 import { getConnection, getRepository } from 'typeorm';
@@ -8,34 +9,34 @@ import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UserService {
-  async createUser(body:CreateUserDto): Promise<any> {
+  async createUser(body: CreateUserDto): Promise<any> {
     return new Promise(async (resolve, reject) => {
       const { firstName, lastName, email, contactno, password, isActive } = body;
       const user_repo = getRepository(UserEntity);
-  
+
       const userCheck = await this.checkUserByEmail(email);
       if (userCheck) {
         return resolve({
           data: null,
           message: 'User Exists on this Email',
-          error:true
+          error: true
         });
       } else {
         const hashPassword: any = await encryptPassword(password);
         user_repo
           .save({
-            firstName,
-            lastName,
-            isActive,
+            first_name:firstName,
+            last_name:lastName,
+            is_active:user_status.ACTIVED,
             email,
             password: hashPassword,
-            contactno,
+            contact_no:contactno,
           })
           .then((res) => {
             return resolve({
               data: null,
               message: 'User Created successfully',
-              error:false
+              error: false
             });
           })
           .catch((err) => {
@@ -50,7 +51,7 @@ export class UserService {
     return user_repo.findOne({
       where: {
         email,
-        isActive: 1,
+        is_active: 1,
       },
     });
   }
@@ -60,35 +61,54 @@ export class UserService {
     return user_repo.findOne({
       where: {
         id,
-        isActive: 1,
+        is_active: 1,
       },
     });
   }
 
-  findAllUser(Response: any) {
+  async findAllUser(query: PaginationParamsDTO, Response: any) {
+    //this set the limit 
+    const take = query.count != undefined && query.count > 0 ? query.count : default_count;
+
+    //this set the offset 
+    const skip = query.page != undefined && query.page > 0 ? (query.page - 1) : 0;
+
     const user_repo = getRepository(UserEntity);
-    user_repo
+    let builder = user_repo
       .createQueryBuilder('user')
-      .select(['user.firstName','user.lastName','user.email','user.isActive'])
-      .getMany()
-      .then((res) => {
-        if (res.length < 1) {
-          Response.status(400).json({
-            data: res,
-            message: `No User Data available`,
-          });
-        }
-        Response.status(200).json({
-          data: res,
-          message: `User Data successfully`,
-        });
-      })
-      .catch((err) => {
-        Response.status(500).json({
-          data: null,
-          message: `Internal server error`,
-        });
-      });
+      .select(['user.first_name', 'user.last_name', 'user.email', 'user.is_active'])
+      .take(take)
+      .skip(skip);
+
+    if (query.sortby && query.sort) {
+      let sortOrder = query.sort ? query.sort.toUpperCase() : default_sort_order;
+      if (sortOrder == 'ASC')
+        builder = builder.orderBy(`user.${query.sortby}`, 'ASC')
+      else {
+        builder = builder.orderBy(`user.${query.sortby}`, 'DESC')
+      }
+    } else {
+      builder = builder.orderBy('user.createdAt', 'DESC')
+    }
+
+    if (query.search) {
+      builder = builder.where("user.first_name like :name", { name: `%${query.search}%` })
+        .orWhere("user.last_name like :lastname", { lastname: `%${query.search}%` })
+        .orWhere("user.email like :email", { email: `%${query.search}%` })
+
+    }
+
+    const users = await builder.getMany();
+    const total = await builder.getCount()
+
+    Response.status(200).json({
+      data: {
+        list: users,
+        total
+      },
+      message: `User Data successfully`,
+    });
+
   }
 
   async findOneUserById(id: number, Response: any) {
@@ -119,13 +139,18 @@ export class UserService {
       await getConnection()
         .createQueryBuilder()
         .update(UserEntity)
-        .set({ firstName, lastName, email, contactno, isActive })
+        .set({
+          first_name: firstName, 
+          last_name:lastName, email, 
+          contact_no:contactno, 
+          is_active:isActive
+        })
         .where("id = :id", { id })
         .execute()
-        .then(()=>{
-          Response.status(200).json({message: 'User Data updated...' });
+        .then(() => {
+          Response.status(200).json({ message: 'User Data updated...' });
         })
-        .catch((err)=>{
+        .catch((err) => {
           Response.status(400).json({
             message: 'User Data not updated...',
           });

@@ -1,33 +1,38 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
-import { PostImageEntity } from 'src/entities/post-image.entity';
-import { PostEntity } from 'src/entities/post.entity';
 import { getConnection, getRepository, Repository } from 'typeorm';
 import { Connection } from 'typeorm';
 import { UserEntity } from 'src/entities/user.entity';
 import { CreateArticalDto } from './dto/create-artical.dto';
+import { UserService } from 'src/user/user.service';
+import { ArticalEntity } from 'src/entities/artical.entity';
+import { ArticalImageEntity } from 'src/entities/artical-image.entity';
+import { default_count, default_sort_order } from 'src/constants/pagination.enum';
 
 @Injectable()
 export class ArticalService {
-  constructor(private connection: Connection) { }
+  constructor(
+    private connection: Connection,
+    private readonly userService:UserService
+    ) { }
 
-  createPost(file, body): Promise<any> {
+  createArtical(file, body): Promise<any> {
     return new Promise(async (resolve, reject) => {
-      const userCheck = await this.checkUserId(body.userId);
-      if (userCheck.length === 0) {
+      const userCheck = await this.userService.checkUserByUserId(body.userId);
+      if (!userCheck) {
         return resolve({
           message: 'User not Found',
           error: true
         })
       } else {
-        const postRepo = getRepository(PostEntity);
-        const postImageRepo = getRepository(PostImageEntity);
-        postRepo.save({
+        const articalRepo = getRepository(ArticalEntity);
+        const articalImageRepo = getRepository(ArticalImageEntity);
+        articalRepo.save({
           name: body.name,
           content: body.content,
           user: body.userId
-        }).then((postData) => {
-          console.log(postData)
-          if (!postData) {
+        }).then((articalData) => {
+          console.log(articalData)
+          if (!articalData) {
             return resolve({
               message: 'Data not Save..',
               error: true
@@ -35,13 +40,13 @@ export class ArticalService {
           } else {
 
             file.map((item) => {
-              postImageRepo.save({
+              articalImageRepo.save({
                 image: item.originalname,
-                post: postData.id
+                artical: articalData.id
               }).then((res) => {
                 console.log('res', res.id)
               }).catch((err) => {
-                console.log('not save this post image', err)
+                console.log('not save this artical image', err)
               })
             })
             return resolve({
@@ -57,64 +62,72 @@ export class ArticalService {
     })
   }
 
-  // return user exists or not in Db
-  checkUserId(userId: number) {
-    return getRepository(UserEntity).find({ where: { id: userId } });
+
+  //check artical id is present or not
+  checkArticalId(articalId: number) {
+    return getRepository(ArticalEntity).findOne({ where: { id: articalId } });
   }
 
-  //check post id is present or not
-  checkPostId(postId: number) {
-    return getRepository(PostEntity).find({ where: { id: postId } });
-  }
+  //get all artical of related iamges and joimn user data
+  async findAllArtical(query,Response) {
+    const artical_repo = getRepository(ArticalEntity);
+    const take = query.count != undefined && query.count > 0 ? query.count : default_count;
+    const skip = query.page != undefined && query.page > 0 ? (query.page - 1) : 0;
+    let builder = artical_repo.createQueryBuilder('artical')
+      .leftJoinAndSelect("artical.images", "articalimage")
+      .leftJoinAndSelect("artical.user", "user")
+      .select(['artical.name', 'artical.content', 'articalimage.image', 'user.first_name', 'user.last_name', 'user.email', 'user.is_active'])
+      // .take(take)
+      // .skip(skip)
 
-  //get all post of related iamges and joimn user data
-  findAllPost(Response) {
-    const post_repo = getRepository(PostEntity);
-    post_repo.createQueryBuilder('post')
-      .leftJoinAndSelect("post.images", "postimage")
-      .leftJoinAndSelect("post.user", "user")
-      .select(['post.name', 'post.content', 'postimage.image', 'user.firstName', 'user.lastName', 'user.email', 'user.isActive'])
-      .getMany()
-      .then((res) => {
-        if (res.length == 0) {
-          return Response.status(HttpStatus.NOT_FOUND).send({
-            data: null,
-            message: 'Post Data not Found',
-          });
-        } else {
-          return Response.status(HttpStatus.OK).send({
-            data: res,
-            message: 'Post Data get',
-          });
+      if (query.sortby && query.sort) {
+        let sortOrder = query.sort ? query.sort.toUpperCase() : default_sort_order;
+        if (sortOrder == 'ASC')
+          builder = builder.orderBy(`artical.${query.sortby}`, 'ASC')
+        else {
+          builder = builder.orderBy(`artical.${query.sortby}`, 'DESC')
         }
-      })
-      .catch((err) => {
-        Response.status(500).json({
-          data: null,
-          message: `Internal server error`,
-        });
-      })
+      } else {
+        builder = builder.orderBy('artical.createdAt', 'DESC')
+      }
+  
+      if (query.search) {
+        builder = builder.where("artical.name like :name", { name: `%${query.search}%` })
+          .orWhere("artical.content like :content", { content: `%${query.search}%` })
+      }
+      const users = await builder.getMany();
+      const total = await builder.getCount();
+  
+      Response.status(200).json({
+        data: {
+          list: users,
+          total
+        },
+        message: `Artical Data successfully`,
+      });
+     
   }
 
   findOne(id: number): Promise<any> {
     return new Promise((resolve, reject) => {
-      const post_repo = getRepository(PostEntity);
-      post_repo.createQueryBuilder('post')
-        .leftJoinAndSelect("post.images", "postimage")
-        .leftJoinAndSelect("post.user", "user")
-        .select(['post.name', 'post.content', 'postimage.image', 'user.firstName', 'user.lastName', 'user.email', 'user.isActive'])
-        .getMany()
+      const artical_repo = getRepository(ArticalEntity);
+      artical_repo.createQueryBuilder('artical')
+        .leftJoinAndSelect("artical.images", "articalimage")
+        .leftJoinAndSelect("artical.user", "user")
+        .select(['artical.id','artical.name', 'artical.content', 'articalimage.image', 'user.first_name', 'user.last_name', 'user.email', 'user.is_active'])
+        .where("artical.id = :articalid", { articalid: id })
+        .getOne()
         .then((res) => {
-          if (res.length == 0) {
+          if (!res) {
             return resolve({
               error: true,
-              message: 'Post Data not Found',
+              message: 'Artical Data not Found',
             });
           } else {
             return resolve({
               data: res,
               error: false,
-              message: 'Post Data get',
+              message: 'Artical Data get',
             });
           }
         })
@@ -127,40 +140,42 @@ export class ArticalService {
     })
   }
 
-  updatePost(id: number, body: CreateArticalDto, file): Promise<any> {
+  updateArtical(id: number, body: CreateArticalDto, file): Promise<any> {
     return new Promise(async (resolve, reject) => {
-      const postExits = await this.checkPostId(id);
-      if (!postExits) {
+      const articalExits = await this.checkArticalId(id);
+      console.log(articalExits,'zdsadsa');
+      
+      if (!articalExits) {
         return resolve({
           error: true,
-          message: 'Post Data not Found',
+          message: 'Artical Data not Found',
         });
       } else {
-        const postRepo = getRepository(PostEntity);
-        //update post data
-        postRepo.createQueryBuilder()
-          .update(PostEntity)
+        const articalRepo = getRepository(ArticalEntity);
+        //update artical data
+        articalRepo.createQueryBuilder()
+          .update(ArticalEntity)
           .set({ name: body.name, content: body.content })
           .where("id = :id", { id })
           .execute()
-          .then((postData) => {
-            //update post image data
-            if (!postData) {
+          .then((articalData) => {
+            //update artical image data
+            if (!articalData) {
               return resolve({
                 message: 'Data not Save..',
                 error: true
               })
             } else {
-              const postImageRepo = getRepository(PostImageEntity);
+              const articalImageRepo = getRepository(ArticalImageEntity);
 
               file.map((item) => {
-                postImageRepo.save({
+                articalImageRepo.save({
                   image: item.originalname,
-                  post: id
+                  artical: id
                 }).then((res) => {
 
                 }).catch((err) => {
-                  console.log('not save this post image', err)
+                  console.log('not save this artical image', err)
                 })
               })
               return resolve({
@@ -177,53 +192,53 @@ export class ArticalService {
     });
   }
 
-  removePost(id: number): Promise<any> {
+  removeArtical(id: number): Promise<any> {
     return new Promise(async (resolve, reject) => {
-      const postExits = await this.checkPostId(id);
-      if (postExits.length === 0) {
+      const articalExits = await this.checkArticalId(id);
+      if (!articalExits) {
         return resolve({
           error: false,
-          message: 'Post Data not Found',
+          message: 'Artical Data not Found',
         });
       } else {
-        //find post image that present on post images table and create a array of that
-        const postImageRepo = getRepository(PostImageEntity);
-        const data = await postImageRepo.createQueryBuilder('post_image')
-          .leftJoinAndSelect("post_image.post", "post")
-          .select(['post_image.id'])
-          .where("post.id = :postid", { postid: id })
+        //find artical image that present on artical images table and create a array of that
+        const articalImageRepo = getRepository(ArticalImageEntity);
+        const data = await articalImageRepo.createQueryBuilder('artical_image')
+          .leftJoinAndSelect("artical_image.artical", "artical")
+          .select(['artical_image.id'])
+          .where("artical.id = :articalid", { articalid: id })
           .getMany();
 
         const dataArr = data.map(object => object.id); //make this array of object data into array bcz in accept only
-       //delete record in postimage table
+       //delete record in articalimage table
        console.log(dataArr);
        if(dataArr.length==0){
         return resolve({
           error: true,
-          message: 'No any PostImage available this post',
+          message: 'No any ArticalImage available this artical',
         });
        }else{
         await getConnection()
         .createQueryBuilder()
         .delete()
-        .from(PostImageEntity)
+        .from(ArticalImageEntity)
         .where("id IN (:...id)", { id: dataArr })
         .execute()
         .then(async()=>{
           //delete record in post table
           await getConnection().createQueryBuilder()
-          .delete().from(PostEntity)
+          .delete().from(ArticalEntity)
           .where('id=:id',{id:id})
           .execute();
           return resolve({
             error: false,
-            message: 'Post Data Deleted',
+            message: 'Artical Data Deleted',
           });
         })
         .catch(()=>{
           return resolve({
             error: true,
-            message: 'Post Data not Deleted',
+            message: 'Artical Data not Deleted',
           });
         })
        }

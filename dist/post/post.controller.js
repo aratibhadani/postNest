@@ -20,6 +20,7 @@ const swagger_1 = require("@nestjs/swagger");
 const swaggerconfig_1 = require("../config/swaggerconfig");
 const platform_express_1 = require("@nestjs/platform-express");
 const multer_1 = require("multer");
+const pagination_dto_1 = require("../config/pagination.dto");
 let PostController = class PostController {
     constructor(postService) {
         this.postService = postService;
@@ -48,8 +49,8 @@ let PostController = class PostController {
             });
         }
     }
-    findAll(response) {
-        return this.postService.findAllPost(response);
+    findAll(query, response) {
+        return this.postService.findAllPost(query, response);
     }
     async findOne(id, response) {
         const resObj = await this.postService.findOne(+id);
@@ -115,7 +116,7 @@ __decorate([
     (0, common_1.UsePipes)(new common_1.ValidationPipe()),
     (0, common_1.UseInterceptors)((0, platform_express_1.FilesInterceptor)('file', 20, {
         storage: (0, multer_1.diskStorage)({
-            destination: './uploads/',
+            destination: './uploads/post/',
         }),
     })),
     __param(0, (0, common_1.UploadedFiles)()),
@@ -128,9 +129,10 @@ __decorate([
 ], PostController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
-    __param(0, (0, common_1.Res)()),
+    __param(0, (0, common_1.Query)()),
+    __param(1, (0, common_1.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [pagination_dto_1.PaginationParamsDTO, Object]),
     __metadata("design:returntype", void 0)
 ], PostController.prototype, "findAll", null);
 __decorate([
@@ -146,7 +148,7 @@ __decorate([
     (0, common_1.UsePipes)(new common_1.ValidationPipe()),
     (0, common_1.UseInterceptors)((0, platform_express_1.FilesInterceptor)('file', 20, {
         storage: (0, multer_1.diskStorage)({
-            destination: './uploads/',
+            destination: './uploads/post/',
         }),
     })),
     __param(0, (0, common_1.UploadedFiles)()),

@@ -5,4 +5,6 @@ export declare class PostEntity {
     content: string;
     user: number;
     images: PostImageEntity[];
+    createdAt: Date;
+    updatedAt: Date;
 }

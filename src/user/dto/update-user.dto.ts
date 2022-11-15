@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsBoolean, IsEmail, IsNotEmpty, IsString } from "class-validator";
+import { IsBoolean, IsEmail, IsNotEmpty, IsNumber, IsString } from "class-validator";
 
 
 export class UpdateUserDto  {
@@ -42,10 +42,10 @@ export class UpdateUserDto  {
       @ApiProperty({
         type: Boolean,
         description: 'enter status',
-        example: true,
+        example: 1,
       })
       @IsNotEmpty({ message: 'Status is required' })
-      @IsBoolean()
-      isActive: boolean;
+      @IsNumber()
+      isActive: number;
 
 }

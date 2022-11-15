@@ -7,17 +7,24 @@ export class PostEntity {
   @PrimaryGeneratedColumn({ type: 'int' })
   id: number;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', length: 150, nullable: false })
   name: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'text', nullable: false })
   content: string;
 
-  
-  @ManyToOne(() => UserEntity, (user) => user.posts)
+  @ManyToOne(() => UserEntity, (user) => user.posts, {
+    nullable: false,
+  })
   @JoinColumn({ name: "user_id" })
   user: number;
 
-  @OneToMany(() => PostImageEntity, (postimage) => postimage.post)
+  @OneToMany(() => PostImageEntity, (images) => images.post)
   images: PostImageEntity[];
+
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP',nullable: false })
+  createdAt: Date;
+
+  @Column({ type: 'timestamp', default: () => "CURRENT_TIMESTAMP" ,nullable: false,onUpdate: "CURRENT_TIMESTAMP" })
+  updatedAt: Date;
 }

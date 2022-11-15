@@ -3,5 +3,5 @@ export declare class UpdateUserDto {
     lastName: string;
     email: string;
     contactno: string;
-    isActive: boolean;
+    isActive: number;
 }

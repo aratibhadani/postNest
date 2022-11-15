@@ -58,11 +58,11 @@ __decorate([
     (0, swagger_1.ApiProperty)({
         type: Boolean,
         description: 'enter status',
-        example: true,
+        example: 1,
     }),
     (0, class_validator_1.IsNotEmpty)({ message: 'Status is required' }),
-    (0, class_validator_1.IsBoolean)(),
-    __metadata("design:type", Boolean)
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
 ], UpdateUserDto.prototype, "isActive", void 0);
 exports.UpdateUserDto = UpdateUserDto;
 //# sourceMappingURL=update-user.dto.js.map

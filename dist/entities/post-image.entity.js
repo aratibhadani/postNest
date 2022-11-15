@@ -19,14 +19,24 @@ __decorate([
     __metadata("design:type", Number)
 ], PostImageEntity.prototype, "id", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
+    (0, typeorm_1.Column)({ nullable: false, length: 100 }),
     __metadata("design:type", String)
 ], PostImageEntity.prototype, "image", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => post_entity_1.PostEntity, (post) => post.images),
+    (0, typeorm_1.ManyToOne)(() => post_entity_1.PostEntity, (post) => post.images, {
+        nullable: false,
+    }),
     (0, typeorm_1.JoinColumn)({ name: "post_id" }),
     __metadata("design:type", Number)
 ], PostImageEntity.prototype, "post", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP', nullable: false }),
+    __metadata("design:type", Date)
+], PostImageEntity.prototype, "createdAt", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'timestamp', default: () => "CURRENT_TIMESTAMP", nullable: false, onUpdate: "CURRENT_TIMESTAMP" }),
+    __metadata("design:type", Date)
+], PostImageEntity.prototype, "updatedAt", void 0);
 PostImageEntity = __decorate([
     (0, typeorm_1.Entity)({ name: 'postimage' })
 ], PostImageEntity);

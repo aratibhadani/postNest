@@ -1,14 +1,15 @@
 import { PostEntity } from 'src/entities/post.entity';
 import { Connection } from 'typeorm';
-import { UserEntity } from 'src/entities/user.entity';
 import { CreatePostDto } from './dto/create-post.dto';
+import { UserService } from 'src/user/user.service';
+import { PaginationParamsDTO } from 'src/config/pagination.dto';
 export declare class PostService {
     private connection;
-    constructor(connection: Connection);
+    private readonly userService;
+    constructor(connection: Connection, userService: UserService);
     createPost(file: any, body: any): Promise<any>;
-    checkUserId(userId: number): Promise<UserEntity[]>;
-    checkPostId(postId: number): Promise<PostEntity[]>;
-    findAllPost(Response: any): void;
+    checkPostId(postId: number): Promise<PostEntity>;
+    findAllPost(query: PaginationParamsDTO, Response: any): Promise<void>;
     findOne(id: number): Promise<any>;
     updatePost(id: number, body: CreatePostDto, file: any): Promise<any>;
     removePost(id: number): Promise<any>;

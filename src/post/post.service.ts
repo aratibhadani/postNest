@@ -3,17 +3,21 @@ import { PostImageEntity } from 'src/entities/post-image.entity';
 import { PostEntity } from 'src/entities/post.entity';
 import { getConnection, getRepository, Repository } from 'typeorm';
 import { Connection } from 'typeorm';
-import { UserEntity } from 'src/entities/user.entity';
 import { CreatePostDto } from './dto/create-post.dto';
+import { UserService } from 'src/user/user.service';
+import { PaginationParamsDTO } from 'src/config/pagination.dto';
+import { default_count, default_sort_order } from 'src/constants/pagination.enum';
 
 @Injectable()
 export class PostService {
-  constructor(private connection: Connection) { }
+  constructor(private connection: Connection,
+    private readonly userService: UserService
+  ) { }
 
   createPost(file, body): Promise<any> {
     return new Promise(async (resolve, reject) => {
-      const userCheck = await this.checkUserId(body.userId);
-      if (userCheck.length === 0) {
+      const userCheck = await this.userService.checkUserByUserId(body.userId);
+      if (!userCheck) {
         return resolve({
           message: 'User not Found',
           error: true
@@ -57,43 +61,50 @@ export class PostService {
     })
   }
 
-  // return user exists or not in Db
-  checkUserId(userId: number) {
-    return getRepository(UserEntity).find({ where: { id: userId } });
-  }
 
   //check post id is present or not
   checkPostId(postId: number) {
-    return getRepository(PostEntity).find({ where: { id: postId } });
+    return getRepository(PostEntity).findOne({ where: { id: postId } });
   }
 
   //get all post of related iamges and joimn user data
-  findAllPost(Response) {
+  async findAllPost(query: PaginationParamsDTO, Response) {
     const post_repo = getRepository(PostEntity);
-    post_repo.createQueryBuilder('post')
-      .leftJoinAndSelect("post.images", "postimage")
+    const take = query.count != undefined && query.count > 0 ? query.count : default_count;
+    const skip = query.page != undefined && query.page > 0 ? (query.page - 1) : 0;
+
+    let builder = post_repo.createQueryBuilder('post')
+      .leftJoinAndSelect("post.images", "post_image")
       .leftJoinAndSelect("post.user", "user")
-      .select(['post.name', 'post.content', 'postimage.image', 'user.firstName', 'user.lastName', 'user.email', 'user.isActive'])
-      .getMany()
-      .then((res) => {
-        if (res.length == 0) {
-          return Response.status(HttpStatus.NOT_FOUND).send({
-            data: null,
-            message: 'Post Data not Found',
-          });
-        } else {
-          return Response.status(HttpStatus.OK).send({
-            data: res,
-            message: 'Post Data get',
-          });
-        }
-      })
-      .catch((err) => {
-        Response.status(500).json({
-          data: null,
-          message: `Internal server error`,
-        });
-      })
+      .select(['post.name', 'post.content', 'post_image.image', 'user.first_name', 'user.last_name', 'user.email', 'user.is_active'])
+    // .take(2)
+    // .skip(1);
+
+    if (query.sortby && query.sort) {
+      let sortOrder = query.sort ? query.sort.toUpperCase() : default_sort_order;
+      if (sortOrder == 'ASC')
+        builder = builder.orderBy(`post.${query.sortby}`, 'ASC')
+      else {
+        builder = builder.orderBy(`post.${query.sortby}`, 'DESC')
+      }
+    } else {
+      builder = builder.orderBy('post.createdAt', 'DESC')
+    }
+
+    if (query.search) {
+      builder = builder.where("post.name like :name", { name: `%${query.search}%` })
+        .orWhere("post.content like :content", { content: `%${query.search}%` })
+    }
+    const users = await builder.getMany();
+    const total = await builder.getCount();
+
+    Response.status(200).json({
+      data: {
+        list: users,
+        total
+      },
+      message: `post Data successfully`,
+    });
   }
 
   findOne(id: number): Promise<any> {
@@ -102,10 +113,11 @@ export class PostService {
       post_repo.createQueryBuilder('post')
         .leftJoinAndSelect("post.images", "postimage")
         .leftJoinAndSelect("post.user", "user")
-        .select(['post.name', 'post.content', 'postimage.image', 'user.firstName', 'user.lastName', 'user.email', 'user.isActive'])
-        .getMany()
+        .select(['post.id', 'post.name', 'post.content', 'postimage.image', 'user.first_name', 'user.last_name', 'user.email', 'user.is_active'])
+        .where("post.id = :postid", { postid: id })
+        .getOne()
         .then((res) => {
-          if (res.length == 0) {
+          if (!res) {
             return resolve({
               error: true,
               message: 'Post Data not Found',
@@ -180,7 +192,7 @@ export class PostService {
   removePost(id: number): Promise<any> {
     return new Promise(async (resolve, reject) => {
       const postExits = await this.checkPostId(id);
-      if (postExits.length === 0) {
+      if (!postExits) {
         return resolve({
           error: false,
           message: 'Post Data not Found',
@@ -195,39 +207,39 @@ export class PostService {
           .getMany();
 
         const dataArr = data.map(object => object.id); //make this array of object data into array bcz in accept only
-       //delete record in postimage table
-       console.log(dataArr);
-       if(dataArr.length==0){
-        return resolve({
-          error: true,
-          message: 'No any PostImage available this post',
-        });
-       }else{
-        await getConnection()
-        .createQueryBuilder()
-        .delete()
-        .from(PostImageEntity)
-        .where("id IN (:...id)", { id: dataArr })
-        .execute()
-        .then(async()=>{
-          //delete record in post table
-          await getConnection().createQueryBuilder()
-          .delete().from(PostEntity)
-          .where('id=:id',{id:id})
-          .execute();
-          return resolve({
-            error: false,
-            message: 'Post Data Deleted',
-          });
-        })
-        .catch(()=>{
+        //delete record in postimage table
+        console.log(dataArr);
+        if (dataArr.length == 0) {
           return resolve({
             error: true,
-            message: 'Post Data not Deleted',
+            message: 'No any PostImage available this post',
           });
-        })
-       }
-       
+        } else {
+          await getConnection()
+            .createQueryBuilder()
+            .delete()
+            .from(PostImageEntity)
+            .where("id IN (:...id)", { id: dataArr })
+            .execute()
+            .then(async () => {
+              //delete record in post table
+              await getConnection().createQueryBuilder()
+                .delete().from(PostEntity)
+                .where('id=:id', { id: id })
+                .execute();
+              return resolve({
+                error: false,
+                message: 'Post Data Deleted',
+              });
+            })
+            .catch(() => {
+              return resolve({
+                error: true,
+                message: 'Post Data not Deleted',
+              });
+            })
+        }
+
       }
     });
   }

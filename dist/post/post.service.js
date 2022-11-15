@@ -15,15 +15,17 @@ const post_image_entity_1 = require("../entities/post-image.entity");
 const post_entity_1 = require("../entities/post.entity");
 const typeorm_1 = require("typeorm");
 const typeorm_2 = require("typeorm");
-const user_entity_1 = require("../entities/user.entity");
+const user_service_1 = require("../user/user.service");
+const pagination_enum_1 = require("../constants/pagination.enum");
 let PostService = class PostService {
-    constructor(connection) {
+    constructor(connection, userService) {
         this.connection = connection;
+        this.userService = userService;
     }
     createPost(file, body) {
         return new Promise(async (resolve, reject) => {
-            const userCheck = await this.checkUserId(body.userId);
-            if (userCheck.length === 0) {
+            const userCheck = await this.userService.checkUserByUserId(body.userId);
+            if (!userCheck) {
                 return resolve({
                     message: 'User not Found',
                     error: true
@@ -66,38 +68,40 @@ let PostService = class PostService {
             }
         });
     }
-    checkUserId(userId) {
-        return (0, typeorm_1.getRepository)(user_entity_1.UserEntity).find({ where: { id: userId } });
-    }
     checkPostId(postId) {
-        return (0, typeorm_1.getRepository)(post_entity_1.PostEntity).find({ where: { id: postId } });
+        return (0, typeorm_1.getRepository)(post_entity_1.PostEntity).findOne({ where: { id: postId } });
     }
-    findAllPost(Response) {
+    async findAllPost(query, Response) {
         const post_repo = (0, typeorm_1.getRepository)(post_entity_1.PostEntity);
-        post_repo.createQueryBuilder('post')
-            .leftJoinAndSelect("post.images", "postimage")
+        const take = query.count != undefined && query.count > 0 ? query.count : pagination_enum_1.default_count;
+        const skip = query.page != undefined && query.page > 0 ? (query.page - 1) : 0;
+        let builder = post_repo.createQueryBuilder('post')
+            .leftJoinAndSelect("post.images", "post_image")
             .leftJoinAndSelect("post.user", "user")
-            .select(['post.name', 'post.content', 'postimage.image', 'user.firstName', 'user.lastName', 'user.email', 'user.isActive'])
-            .getMany()
-            .then((res) => {
-            if (res.length == 0) {
-                return Response.status(common_1.HttpStatus.NOT_FOUND).send({
-                    data: null,
-                    message: 'Post Data not Found',
-                });
-            }
+            .select(['post.name', 'post.content', 'post_image.image', 'user.first_name', 'user.last_name', 'user.email', 'user.is_active']);
+        if (query.sortby && query.sort) {
+            let sortOrder = query.sort ? query.sort.toUpperCase() : pagination_enum_1.default_sort_order;
+            if (sortOrder == 'ASC')
+                builder = builder.orderBy(`post.${query.sortby}`, 'ASC');
             else {
-                return Response.status(common_1.HttpStatus.OK).send({
-                    data: res,
-                    message: 'Post Data get',
-                });
+                builder = builder.orderBy(`post.${query.sortby}`, 'DESC');
             }
-        })
-            .catch((err) => {
-            Response.status(500).json({
-                data: null,
-                message: `Internal server error`,
-            });
+        }
+        else {
+            builder = builder.orderBy('post.createdAt', 'DESC');
+        }
+        if (query.search) {
+            builder = builder.where("post.name like :name", { name: `%${query.search}%` })
+                .orWhere("post.content like :content", { content: `%${query.search}%` });
+        }
+        const users = await builder.getMany();
+        const total = await builder.getCount();
+        Response.status(200).json({
+            data: {
+                list: users,
+                total
+            },
+            message: `post Data successfully`,
         });
     }
     findOne(id) {
@@ -106,10 +110,11 @@ let PostService = class PostService {
             post_repo.createQueryBuilder('post')
                 .leftJoinAndSelect("post.images", "postimage")
                 .leftJoinAndSelect("post.user", "user")
-                .select(['post.name', 'post.content', 'postimage.image', 'user.firstName', 'user.lastName', 'user.email', 'user.isActive'])
-                .getMany()
+                .select(['post.id', 'post.name', 'post.content', 'postimage.image', 'user.first_name', 'user.last_name', 'user.email', 'user.is_active'])
+                .where("post.id = :postid", { postid: id })
+                .getOne()
                 .then((res) => {
-                if (res.length == 0) {
+                if (!res) {
                     return resolve({
                         error: true,
                         message: 'Post Data not Found',
@@ -180,7 +185,7 @@ let PostService = class PostService {
     removePost(id) {
         return new Promise(async (resolve, reject) => {
             const postExits = await this.checkPostId(id);
-            if (postExits.length === 0) {
+            if (!postExits) {
                 return resolve({
                     error: false,
                     message: 'Post Data not Found',
@@ -231,7 +236,8 @@ let PostService = class PostService {
 };
 PostService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [typeorm_2.Connection])
+    __metadata("design:paramtypes", [typeorm_2.Connection,
+        user_service_1.UserService])
 ], PostService);
 exports.PostService = PostService;
 //# sourceMappingURL=post.service.js.map

@@ -15,6 +15,7 @@ import {
   HttpStatus,
   ParseIntPipe,
   Put,
+  Query,
 } from '@nestjs/common';
 import { PostService } from './post.service';
 import { CreatePostDto } from './dto/create-post.dto';
@@ -27,6 +28,7 @@ import {
 } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { Response } from 'express';
+import { PaginationParamsDTO } from 'src/config/pagination.dto';
 
 @ApiTags(swaggerTags.post)
 @Controller('post')
@@ -38,7 +40,7 @@ export class PostController {
   @UseInterceptors(
     FilesInterceptor('file', 20, {
       storage: diskStorage({
-        destination: './uploads/',
+        destination: './uploads/post/',
       }),
     }),
   )
@@ -70,8 +72,10 @@ export class PostController {
   }
 
   @Get()
-  findAll(@Res() response: Response) {
-    return this.postService.findAllPost(response);
+  findAll(
+    @Query() query: PaginationParamsDTO,
+    @Res() response: Response) {
+    return this.postService.findAllPost(query,response);
   }
 
   @Get(':id')
@@ -104,7 +108,7 @@ export class PostController {
   @UseInterceptors(
     FilesInterceptor('file', 20, {
       storage: diskStorage({
-        destination: './uploads/',
+        destination: './uploads/post/',
       }),
     }),
   )

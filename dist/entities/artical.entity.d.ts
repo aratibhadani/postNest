@@ -5,4 +5,6 @@ export declare class ArticalEntity {
     content: string;
     user: number;
     images: ArticalImageEntity[];
+    createdAt: Date;
+    updatedAt: Date;
 }

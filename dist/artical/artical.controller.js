@@ -20,6 +20,7 @@ const swagger_1 = require("@nestjs/swagger");
 const swaggerconfig_1 = require("../config/swaggerconfig");
 const platform_express_1 = require("@nestjs/platform-express");
 const multer_1 = require("multer");
+const pagination_dto_1 = require("../config/pagination.dto");
 let ArticalController = class ArticalController {
     constructor(articalService) {
         this.articalService = articalService;
@@ -32,7 +33,7 @@ let ArticalController = class ArticalController {
                 error: true,
             });
         }
-        const resObj = await this.articalService.createPost(file, body);
+        const resObj = await this.articalService.createArtical(file, body);
         if (resObj.error) {
             return response.status(common_1.HttpStatus.BAD_REQUEST).send({
                 message: resObj.message,
@@ -48,8 +49,8 @@ let ArticalController = class ArticalController {
             });
         }
     }
-    findAll(response) {
-        return this.articalService.findAllPost(response);
+    findAll(query, response) {
+        return this.articalService.findAllArtical(query, response);
     }
     async findOne(id, response) {
         const resObj = await this.articalService.findOne(+id);
@@ -76,7 +77,7 @@ let ArticalController = class ArticalController {
                 error: true,
             });
         }
-        const resObj = await this.articalService.updatePost(+id, updatePostDto, file);
+        const resObj = await this.articalService.updateArtical(+id, updatePostDto, file);
         if (resObj.error) {
             return response.status(common_1.HttpStatus.BAD_REQUEST).send({
                 message: resObj.message,
@@ -93,7 +94,7 @@ let ArticalController = class ArticalController {
         }
     }
     async remove(id, response) {
-        const resObj = await this.articalService.removePost(+id);
+        const resObj = await this.articalService.removeArtical(+id);
         if (resObj.error) {
             return response.status(common_1.HttpStatus.BAD_REQUEST).send({
                 message: resObj.message,
@@ -115,7 +116,7 @@ __decorate([
     (0, common_1.UsePipes)(new common_1.ValidationPipe()),
     (0, common_1.UseInterceptors)((0, platform_express_1.FilesInterceptor)('file', 20, {
         storage: (0, multer_1.diskStorage)({
-            destination: './uploads/',
+            destination: './uploads/artical/',
         }),
     })),
     __param(0, (0, common_1.UploadedFiles)()),
@@ -128,9 +129,10 @@ __decorate([
 ], ArticalController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
-    __param(0, (0, common_1.Res)()),
+    __param(0, (0, common_1.Query)()),
+    __param(1, (0, common_1.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [pagination_dto_1.PaginationParamsDTO, Object]),
     __metadata("design:returntype", void 0)
 ], ArticalController.prototype, "findAll", null);
 __decorate([

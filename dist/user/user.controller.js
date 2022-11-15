@@ -21,6 +21,7 @@ const swaggerconfig_1 = require("../config/swaggerconfig");
 const get_user_decorator_1 = require("../helper/get-user.decorator");
 const user_entity_1 = require("../entities/user.entity");
 const update_user_dto_1 = require("./dto/update-user.dto");
+const pagination_dto_1 = require("../config/pagination.dto");
 let UserController = class UserController {
     constructor(userService) {
         this.userService = userService;
@@ -42,8 +43,9 @@ let UserController = class UserController {
             });
         }
     }
-    findAll(page, response) {
-        return this.userService.findAllUser(response);
+    findAll(query, response) {
+        console.log(query);
+        return this.userService.findAllUser(query, response);
     }
     findOne(id, response, user) {
         return this.userService.findOneUserById(+id, response);
@@ -66,10 +68,10 @@ __decorate([
 ], UserController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
-    __param(0, (0, common_1.Query)('page', new common_1.DefaultValuePipe(0))),
+    __param(0, (0, common_1.Query)()),
     __param(1, (0, common_1.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, Object]),
+    __metadata("design:paramtypes", [pagination_dto_1.PaginationParamsDTO, Object]),
     __metadata("design:returntype", void 0)
 ], UserController.prototype, "findAll", null);
 __decorate([

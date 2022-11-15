@@ -38,7 +38,7 @@ let AuthService = class AuthService {
                     await (0, typeorm_1.getRepository)(user_entity_1.UserEntity)
                         .createQueryBuilder('user')
                         .update()
-                        .set({ loginToken: token })
+                        .set({ login_token: token })
                         .where('id = :id', { id: user.id })
                         .execute()
                         .then(() => {

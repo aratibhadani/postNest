@@ -8,6 +8,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserService = void 0;
 const common_1 = require("@nestjs/common");
+const pagination_enum_1 = require("../constants/pagination.enum");
 const user_entity_1 = require("../entities/user.entity");
 const common_2 = require("../helper/common");
 const typeorm_1 = require("typeorm");
@@ -28,12 +29,12 @@ let UserService = class UserService {
                 const hashPassword = await (0, common_2.encryptPassword)(password);
                 user_repo
                     .save({
-                    firstName,
-                    lastName,
-                    isActive,
+                    first_name: firstName,
+                    last_name: lastName,
+                    is_active: pagination_enum_1.user_status.ACTIVED,
                     email,
                     password: hashPassword,
-                    contactno,
+                    contact_no: contactno,
                 })
                     .then((res) => {
                     return resolve({
@@ -53,7 +54,7 @@ let UserService = class UserService {
         return user_repo.findOne({
             where: {
                 email,
-                isActive: 1,
+                is_active: 1,
             },
         });
     }
@@ -62,33 +63,43 @@ let UserService = class UserService {
         return user_repo.findOne({
             where: {
                 id,
-                isActive: 1,
+                is_active: 1,
             },
         });
     }
-    findAllUser(Response) {
+    async findAllUser(query, Response) {
+        const take = query.count != undefined && query.count > 0 ? query.count : pagination_enum_1.default_count;
+        const skip = query.page != undefined && query.page > 0 ? (query.page - 1) : 0;
         const user_repo = (0, typeorm_1.getRepository)(user_entity_1.UserEntity);
-        user_repo
+        let builder = user_repo
             .createQueryBuilder('user')
-            .select(['user.firstName', 'user.lastName', 'user.email', 'user.isActive'])
-            .getMany()
-            .then((res) => {
-            if (res.length < 1) {
-                Response.status(400).json({
-                    data: res,
-                    message: `No User Data available`,
-                });
+            .select(['user.first_name', 'user.last_name', 'user.email', 'user.is_active'])
+            .take(take)
+            .skip(skip);
+        if (query.sortby && query.sort) {
+            let sortOrder = query.sort ? query.sort.toUpperCase() : pagination_enum_1.default_sort_order;
+            if (sortOrder == 'ASC')
+                builder = builder.orderBy(`user.${query.sortby}`, 'ASC');
+            else {
+                builder = builder.orderBy(`user.${query.sortby}`, 'DESC');
             }
-            Response.status(200).json({
-                data: res,
-                message: `User Data successfully`,
-            });
-        })
-            .catch((err) => {
-            Response.status(500).json({
-                data: null,
-                message: `Internal server error`,
-            });
+        }
+        else {
+            builder = builder.orderBy('user.createdAt', 'DESC');
+        }
+        if (query.search) {
+            builder = builder.where("user.first_name like :name", { name: `%${query.search}%` })
+                .orWhere("user.last_name like :lastname", { lastname: `%${query.search}%` })
+                .orWhere("user.email like :email", { email: `%${query.search}%` });
+        }
+        const users = await builder.getMany();
+        const total = await builder.getCount();
+        Response.status(200).json({
+            data: {
+                list: users,
+                total
+            },
+            message: `User Data successfully`,
         });
     }
     async findOneUserById(id, Response) {
@@ -121,7 +132,12 @@ let UserService = class UserService {
             await (0, typeorm_1.getConnection)()
                 .createQueryBuilder()
                 .update(user_entity_1.UserEntity)
-                .set({ firstName, lastName, email, contactno, isActive })
+                .set({
+                first_name: firstName,
+                last_name: lastName, email,
+                contact_no: contactno,
+                is_active: isActive
+            })
                 .where("id = :id", { id })
                 .execute()
                 .then(() => {
