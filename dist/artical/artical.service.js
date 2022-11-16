@@ -22,9 +22,9 @@ let ArticalService = class ArticalService {
         this.connection = connection;
         this.userService = userService;
     }
-    createArtical(file, body) {
+    createArtical(file, body, userId) {
         return new Promise(async (resolve, reject) => {
-            const userCheck = await this.userService.checkUserByUserId(body.userId);
+            const userCheck = await this.userService.checkUserByUserId(userId);
             if (!userCheck) {
                 return resolve({
                     message: 'User not Found',
@@ -37,7 +37,7 @@ let ArticalService = class ArticalService {
                 articalRepo.save({
                     name: body.name,
                     content: body.content,
-                    user: body.userId
+                    user: userId
                 }).then((articalData) => {
                     console.log(articalData);
                     if (!articalData) {

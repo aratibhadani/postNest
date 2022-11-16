@@ -12,6 +12,7 @@ import { PostImageEntity } from './entities/post-image.entity';
 import { ArticalModule } from './artical/artical.module';
 import { ArticalEntity } from './entities/artical.entity';
 import { ArticalImageEntity } from './entities/artical-image.entity';
+
 @Module({
   imports: [
     ConfigModule.forRoot(),

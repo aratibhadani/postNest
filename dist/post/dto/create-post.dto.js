@@ -18,7 +18,6 @@ __decorate([
     (0, swagger_1.ApiProperty)({
         type: String,
         description: 'post Name Enter',
-        example: 'post description',
     }),
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsNotEmpty)({ message: 'name is required' }),
@@ -28,7 +27,6 @@ __decorate([
     (0, swagger_1.ApiProperty)({
         type: String,
         description: 'content Enter',
-        example: 'post description add',
     }),
     (0, class_validator_1.IsNotEmpty)({ message: 'content is required' }),
     (0, class_validator_1.IsString)(),

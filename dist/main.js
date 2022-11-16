@@ -4,8 +4,10 @@ const core_1 = require("@nestjs/core");
 const app_module_1 = require("./app.module");
 const swagger_1 = require("@nestjs/swagger");
 const swaggerconfig_1 = require("./config/swaggerconfig");
+const cookieParser = require("cookie-parser");
 async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
+    app.use(cookieParser());
     const document = swagger_1.SwaggerModule.createDocument(app, swaggerconfig_1.swaggerConfig);
     swagger_1.SwaggerModule.setup('api-docs', app, document);
     await app.listen(3000);

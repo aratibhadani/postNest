@@ -15,9 +15,9 @@ export class ArticalService {
     private readonly userService:UserService
     ) { }
 
-  createArtical(file, body): Promise<any> {
+  createArtical(file, body,userId): Promise<any> {
     return new Promise(async (resolve, reject) => {
-      const userCheck = await this.userService.checkUserByUserId(body.userId);
+      const userCheck = await this.userService.checkUserByUserId(userId);
       if (!userCheck) {
         return resolve({
           message: 'User not Found',
@@ -29,7 +29,7 @@ export class ArticalService {
         articalRepo.save({
           name: body.name,
           content: body.content,
-          user: body.userId
+          user: userId
         }).then((articalData) => {
           console.log(articalData)
           if (!articalData) {

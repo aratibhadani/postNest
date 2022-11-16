@@ -21,11 +21,13 @@ const swaggerconfig_1 = require("../config/swaggerconfig");
 const platform_express_1 = require("@nestjs/platform-express");
 const multer_1 = require("multer");
 const pagination_dto_1 = require("../config/pagination.dto");
+const auth_guard_1 = require("../guard/auth.guard");
+const get_user_decorator_1 = require("../helper/get-user.decorator");
 let ArticalController = class ArticalController {
     constructor(articalService) {
         this.articalService = articalService;
     }
-    async create(file, body, response) {
+    async create(file, body, response, user) {
         if (file.length == 0) {
             return response.status(common_1.HttpStatus.BAD_REQUEST).send({
                 message: 'file is required',
@@ -33,7 +35,7 @@ let ArticalController = class ArticalController {
                 error: true,
             });
         }
-        const resObj = await this.articalService.createArtical(file, body);
+        const resObj = await this.articalService.createArtical(file, body, user.id);
         if (resObj.error) {
             return response.status(common_1.HttpStatus.BAD_REQUEST).send({
                 message: resObj.message,
@@ -122,9 +124,10 @@ __decorate([
     __param(0, (0, common_1.UploadedFiles)()),
     __param(1, (0, common_1.Body)()),
     __param(2, (0, common_1.Res)()),
+    __param(3, (0, get_user_decorator_1.GetUser)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Array,
-        create_artical_dto_1.CreateArticalDto, Object]),
+        create_artical_dto_1.CreateArticalDto, Object, Object]),
     __metadata("design:returntype", Promise)
 ], ArticalController.prototype, "create", null);
 __decorate([
@@ -169,6 +172,8 @@ __decorate([
 ], ArticalController.prototype, "remove", null);
 ArticalController = __decorate([
     (0, swagger_1.ApiTags)(swaggerconfig_1.swaggerTags.artical),
+    (0, common_1.UseGuards)(auth_guard_1.AuthGuard),
+    (0, swagger_1.ApiBearerAuth)('authorization'),
     (0, common_1.Controller)('artical'),
     __metadata("design:paramtypes", [artical_service_1.ArticalService])
 ], ArticalController);

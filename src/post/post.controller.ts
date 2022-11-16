@@ -16,10 +16,14 @@ import {
   ParseIntPipe,
   Put,
   Query,
+  UseGuards,
+  ParseFilePipe,
+  MaxFileSizeValidator,
+  FileTypeValidator,
 } from '@nestjs/common';
 import { PostService } from './post.service';
 import { CreatePostDto } from './dto/create-post.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { swaggerTags } from 'src/config/swaggerconfig';
 import {
   FileFieldsInterceptor,
@@ -29,25 +33,52 @@ import {
 import { diskStorage } from 'multer';
 import { Response } from 'express';
 import { PaginationParamsDTO } from 'src/config/pagination.dto';
+import { AuthGuard } from 'src/guard/auth.guard';
+import { GetUser } from 'src/helper/get-user.decorator';
+import { imageFileFilter } from 'src/helper/validation.helper';
 
 @ApiTags(swaggerTags.post)
+@UseGuards(AuthGuard)
 @Controller('post')
+@ApiBearerAuth('authorization')
 export class PostController {
   constructor(private readonly postService: PostService) { }
 
+
+  //for creating post
   @Post('add')
   @UsePipes(new ValidationPipe())
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        name: { type: 'string' },
+        content: { type: 'string' },
+        file: {
+          type: 'array',
+          items: {
+            type: 'string',
+            format: 'binary',
+          },
+        },
+      },
+    },
+  })
   @UseInterceptors(
     FilesInterceptor('file', 20, {
       storage: diskStorage({
         destination: './uploads/post/',
       }),
+      fileFilter:imageFileFilter
     }),
   )
   async create(
     @UploadedFiles() file: Array<Express.Multer.File>,
     @Body() body: CreatePostDto,
-    @Res() response: Response): Promise<any> {
+    @Res() response: Response,
+    @GetUser() user: any,
+  ): Promise<any> {
     if (file.length == 0) {
       return response.status(HttpStatus.BAD_REQUEST).send({
         message: 'file is required',
@@ -55,7 +86,7 @@ export class PostController {
         error: true,
       });
     }
-    const resObj = await this.postService.createPost(file, body);
+    const resObj = await this.postService.createPost(file, body, user.id);
     if (resObj.error) {
       return response.status(HttpStatus.BAD_REQUEST).send({
         message: resObj.message,
@@ -75,7 +106,7 @@ export class PostController {
   findAll(
     @Query() query: PaginationParamsDTO,
     @Res() response: Response) {
-    return this.postService.findAllPost(query,response);
+    return this.postService.findAllPost(query, response);
   }
 
   @Get(':id')

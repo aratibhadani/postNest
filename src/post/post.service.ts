@@ -14,9 +14,9 @@ export class PostService {
     private readonly userService: UserService
   ) { }
 
-  createPost(file, body): Promise<any> {
+  createPost(file, body,userId): Promise<any> {
     return new Promise(async (resolve, reject) => {
-      const userCheck = await this.userService.checkUserByUserId(body.userId);
+      const userCheck = await this.userService.checkUserByUserId(userId);
       if (!userCheck) {
         return resolve({
           message: 'User not Found',
@@ -28,7 +28,7 @@ export class PostService {
         postRepo.save({
           name: body.name,
           content: body.content,
-          user: body.userId
+          user: userId
         }).then((postData) => {
           console.log(postData)
           if (!postData) {

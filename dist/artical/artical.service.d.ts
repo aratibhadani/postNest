@@ -6,7 +6,7 @@ export declare class ArticalService {
     private connection;
     private readonly userService;
     constructor(connection: Connection, userService: UserService);
-    createArtical(file: any, body: any): Promise<any>;
+    createArtical(file: any, body: any, userId: any): Promise<any>;
     checkArticalId(articalId: number): Promise<ArticalEntity>;
     findAllArtical(query: any, Response: any): Promise<void>;
     findOne(id: number): Promise<any>;

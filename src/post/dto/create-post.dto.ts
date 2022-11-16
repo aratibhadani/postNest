@@ -5,7 +5,6 @@ export class CreatePostDto {
   @ApiProperty({
     type: String,
     description: 'post Name Enter',
-    example: 'post description',
   })
   @IsString()
   @IsNotEmpty({ message: 'name is required' })
@@ -14,7 +13,6 @@ export class CreatePostDto {
   @ApiProperty({
     type: String,
     description: 'content Enter',
-    example: 'post description add',
   })
   @IsNotEmpty({ message: 'content is required' })
   @IsString()

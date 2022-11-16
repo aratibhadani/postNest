@@ -22,9 +22,9 @@ let PostService = class PostService {
         this.connection = connection;
         this.userService = userService;
     }
-    createPost(file, body) {
+    createPost(file, body, userId) {
         return new Promise(async (resolve, reject) => {
-            const userCheck = await this.userService.checkUserByUserId(body.userId);
+            const userCheck = await this.userService.checkUserByUserId(userId);
             if (!userCheck) {
                 return resolve({
                     message: 'User not Found',
@@ -37,7 +37,7 @@ let PostService = class PostService {
                 postRepo.save({
                     name: body.name,
                     content: body.content,
-                    user: body.userId
+                    user: userId
                 }).then((postData) => {
                     console.log(postData);
                     if (!postData) {

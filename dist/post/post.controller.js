@@ -21,11 +21,14 @@ const swaggerconfig_1 = require("../config/swaggerconfig");
 const platform_express_1 = require("@nestjs/platform-express");
 const multer_1 = require("multer");
 const pagination_dto_1 = require("../config/pagination.dto");
+const auth_guard_1 = require("../guard/auth.guard");
+const get_user_decorator_1 = require("../helper/get-user.decorator");
+const validation_helper_1 = require("../helper/validation.helper");
 let PostController = class PostController {
     constructor(postService) {
         this.postService = postService;
     }
-    async create(file, body, response) {
+    async create(file, body, response, user) {
         if (file.length == 0) {
             return response.status(common_1.HttpStatus.BAD_REQUEST).send({
                 message: 'file is required',
@@ -33,7 +36,7 @@ let PostController = class PostController {
                 error: true,
             });
         }
-        const resObj = await this.postService.createPost(file, body);
+        const resObj = await this.postService.createPost(file, body, user.id);
         if (resObj.error) {
             return response.status(common_1.HttpStatus.BAD_REQUEST).send({
                 message: resObj.message,
@@ -114,17 +117,36 @@ let PostController = class PostController {
 __decorate([
     (0, common_1.Post)('add'),
     (0, common_1.UsePipes)(new common_1.ValidationPipe()),
+    (0, swagger_1.ApiConsumes)('multipart/form-data'),
+    (0, swagger_1.ApiBody)({
+        schema: {
+            type: 'object',
+            properties: {
+                name: { type: 'string' },
+                content: { type: 'string' },
+                file: {
+                    type: 'array',
+                    items: {
+                        type: 'string',
+                        format: 'binary',
+                    },
+                },
+            },
+        },
+    }),
     (0, common_1.UseInterceptors)((0, platform_express_1.FilesInterceptor)('file', 20, {
         storage: (0, multer_1.diskStorage)({
             destination: './uploads/post/',
         }),
+        fileFilter: validation_helper_1.imageFileFilter
     })),
     __param(0, (0, common_1.UploadedFiles)()),
     __param(1, (0, common_1.Body)()),
     __param(2, (0, common_1.Res)()),
+    __param(3, (0, get_user_decorator_1.GetUser)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Array,
-        create_post_dto_1.CreatePostDto, Object]),
+        create_post_dto_1.CreatePostDto, Object, Object]),
     __metadata("design:returntype", Promise)
 ], PostController.prototype, "create", null);
 __decorate([
@@ -169,7 +191,9 @@ __decorate([
 ], PostController.prototype, "remove", null);
 PostController = __decorate([
     (0, swagger_1.ApiTags)(swaggerconfig_1.swaggerTags.post),
+    (0, common_1.UseGuards)(auth_guard_1.AuthGuard),
     (0, common_1.Controller)('post'),
+    (0, swagger_1.ApiBearerAuth)('authorization'),
     __metadata("design:paramtypes", [post_service_1.PostService])
 ], PostController);
 exports.PostController = PostController;

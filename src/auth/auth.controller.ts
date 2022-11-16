@@ -14,14 +14,18 @@ import {
   HttpStatus,
   Query,
   DefaultValuePipe,
+  Req,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { swaggerTags } from 'src/config/swaggerconfig';
-import { UserService } from 'src/user/user.service';
 import { AuthService } from './auth.service';
 import { LoginDTO } from './dto/login-user.dto';
-import { AuthGuard } from '@nestjs/passport';
+import { AuthGuard } from 'src/guard/auth.guard';
+import { GetUser } from 'src/helper/get-user.decorator';
+import { UserEntity } from 'src/entities/user.entity';
+import { getRepository } from 'typeorm';
+
 
 @ApiTags(swaggerTags.auth)
 @Controller('auth')
@@ -36,9 +40,28 @@ export class AuthController {
   }
 
   @Get('check')
+  @UseGuards(AuthGuard)
   @ApiBearerAuth('authorization')
-  @UseGuards(AuthGuard('jwt'))
-  checkRoute() {
-    return 'return data';
+  checkRoute(
+    @GetUser() user: any,
+    @Res() response: Response,
+  ) {
+    console.log(user)
+   
+  }
+
+  @Get('logout')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth('authorization')
+  LogoutRoute(
+    @GetUser() user: any,
+    @Res() response: Response
+  ) {
+    
+    response.clearCookie(process.env.COOKIE_NAME);
+    return response.status(200).json({
+      message:"logout Done..",
+      error:false
+    })
   }
 }

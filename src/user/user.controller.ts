@@ -25,9 +25,9 @@ import { GetUser } from 'src/helper/get-user.decorator';
 import { UserEntity } from 'src/entities/user.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PaginationParamsDTO } from 'src/config/pagination.dto';
+import { AuthGuard } from 'src/guard/auth.guard';
 
 @ApiTags(swaggerTags.user)
-// @ApiBearerAuth('authorization')
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) { }
@@ -56,27 +56,30 @@ export class UserController {
   }
 
   @Get()
+  @ApiBearerAuth('authorization')
+  @UseGuards(AuthGuard)
   findAll(
     @Query() query: PaginationParamsDTO,
     @Res() response: Response,
   ) {
-    console.log(query);
-    
-    return this.userService.findAllUser(query,response);
+      return this.userService.findAllUser(query,response);
   }
 
   @Get(':id')
+  @ApiBearerAuth('authorization')
+  @UseGuards(AuthGuard)
   findOne(
     @Param('id',
       new ParseIntPipe({ errorHttpStatusCode: HttpStatus.NOT_ACCEPTABLE }))
     id: number,
     @Res() response: Response,
-    @GetUser() user: UserEntity,
   ) {
     return this.userService.findOneUserById(+id,response);
   }
 
   @Put(':id')
+  @ApiBearerAuth('authorization')
+  @UseGuards(AuthGuard)
   @UsePipes(new ValidationPipe())
   update(
     @Param('id', new ParseIntPipe({ errorHttpStatusCode: HttpStatus.NOT_ACCEPTABLE })) id: number,
@@ -86,6 +89,8 @@ export class UserController {
   }
 
   @Delete(':id')
+  @ApiBearerAuth('authorization')
+  @UseGuards(AuthGuard)
   remove(@Param('id', ParseIntPipe) id: number, @Res() response: Response) {
     return this.userService.removeUser(+id, response);
   }

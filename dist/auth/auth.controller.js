@@ -18,7 +18,8 @@ const swagger_1 = require("@nestjs/swagger");
 const swaggerconfig_1 = require("../config/swaggerconfig");
 const auth_service_1 = require("./auth.service");
 const login_user_dto_1 = require("./dto/login-user.dto");
-const passport_1 = require("@nestjs/passport");
+const auth_guard_1 = require("../guard/auth.guard");
+const get_user_decorator_1 = require("../helper/get-user.decorator");
 let AuthController = class AuthController {
     constructor(authService) {
         this.authService = authService;
@@ -27,8 +28,15 @@ let AuthController = class AuthController {
         const reqParam = body;
         this.authService.loginService(reqParam, response);
     }
-    checkRoute() {
-        return 'return data';
+    checkRoute(user, response) {
+        console.log(user);
+    }
+    LogoutRoute(user, response) {
+        response.clearCookie(process.env.COOKIE_NAME);
+        return response.status(200).json({
+            message: "logout Done..",
+            error: false
+        });
     }
 };
 __decorate([
@@ -42,12 +50,24 @@ __decorate([
 ], AuthController.prototype, "Login", null);
 __decorate([
     (0, common_1.Get)('check'),
+    (0, common_1.UseGuards)(auth_guard_1.AuthGuard),
     (0, swagger_1.ApiBearerAuth)('authorization'),
-    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    __param(0, (0, get_user_decorator_1.GetUser)()),
+    __param(1, (0, common_1.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", void 0)
 ], AuthController.prototype, "checkRoute", null);
+__decorate([
+    (0, common_1.Get)('logout'),
+    (0, common_1.UseGuards)(auth_guard_1.AuthGuard),
+    (0, swagger_1.ApiBearerAuth)('authorization'),
+    __param(0, (0, get_user_decorator_1.GetUser)()),
+    __param(1, (0, common_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", void 0)
+], AuthController.prototype, "LogoutRoute", null);
 AuthController = __decorate([
     (0, swagger_1.ApiTags)(swaggerconfig_1.swaggerTags.auth),
     (0, common_1.Controller)('auth'),

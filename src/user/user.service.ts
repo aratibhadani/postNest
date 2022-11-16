@@ -165,13 +165,6 @@ export class UserService {
       await user_repo
         .delete({ id })
         .then((res) => {
-
-          // getRepository(UserEntity).delete({id})
-          // .then((res)=>{
-          //     console.log(res,'responce');
-
-          // })
-
           Response.status(200).json({
             data: null,
             message: `User Deleted successfully`,

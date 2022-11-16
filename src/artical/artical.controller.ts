@@ -16,10 +16,11 @@ import {
   ParseIntPipe,
   Put,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { ArticalService } from './artical.service';
 import { CreateArticalDto } from './dto/create-artical.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { swaggerTags } from 'src/config/swaggerconfig';
 import {
   FileFieldsInterceptor,
@@ -29,8 +30,12 @@ import {
 import { diskStorage } from 'multer';
 import { Response } from 'express';
 import { PaginationParamsDTO } from 'src/config/pagination.dto';
+import { AuthGuard } from 'src/guard/auth.guard';
+import { GetUser } from 'src/helper/get-user.decorator';
 
 @ApiTags(swaggerTags.artical)
+@UseGuards(AuthGuard)
+@ApiBearerAuth('authorization')
 @Controller('artical')
 export class ArticalController {
   constructor(private readonly articalService: ArticalService) { }
@@ -47,7 +52,9 @@ export class ArticalController {
   async create(
     @UploadedFiles() file: Array<Express.Multer.File>,
     @Body() body: CreateArticalDto,
-    @Res() response: Response): Promise<any> {
+    @Res() response: Response,
+    @GetUser() user: any,
+    ): Promise<any> {
     if (file.length == 0) {
       return response.status(HttpStatus.BAD_REQUEST).send({
         message: 'file is required',
@@ -55,7 +62,7 @@ export class ArticalController {
         error: true,
       });
     }
-    const resObj = await this.articalService.createArtical(file, body);
+    const resObj = await this.articalService.createArtical(file, body,user.id);
     if (resObj.error) {
       return response.status(HttpStatus.BAD_REQUEST).send({
         message: resObj.message,

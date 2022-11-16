@@ -13,13 +13,11 @@ exports.AuthService = void 0;
 const common_1 = require("@nestjs/common");
 const common_2 = require("../helper/common");
 const user_service_1 = require("../user/user.service");
-const jwt_1 = require("@nestjs/jwt");
 const typeorm_1 = require("typeorm");
 const user_entity_1 = require("../entities/user.entity");
 let AuthService = class AuthService {
-    constructor(userService, jwtService) {
+    constructor(userService) {
         this.userService = userService;
-        this.jwtService = jwtService;
     }
     async loginService(reqParam, Response) {
         const { email, password } = reqParam;
@@ -34,7 +32,12 @@ let AuthService = class AuthService {
             (0, common_2.verifyPassword)(password, user.password)
                 .then(async (is_correctPassword) => {
                 if (is_correctPassword) {
-                    const token = await this.createJWTToken(user);
+                    console.log(user, '->userData');
+                    const payload = {
+                        id: user.id
+                    };
+                    const token = await (0, common_2.generateToken)(payload);
+                    Response.cookie(process.env.COOKIE_NAME, token);
                     await (0, typeorm_1.getRepository)(user_entity_1.UserEntity)
                         .createQueryBuilder('user')
                         .update()
@@ -70,17 +73,10 @@ let AuthService = class AuthService {
             });
         }
     }
-    createJWTToken(payload) {
-        return this.jwtService.sign({
-            email: payload.email,
-            id: payload.id,
-        });
-    }
 };
 AuthService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [user_service_1.UserService,
-        jwt_1.JwtService])
+    __metadata("design:paramtypes", [user_service_1.UserService])
 ], AuthService);
 exports.AuthService = AuthService;
 //# sourceMappingURL=auth.service.js.map

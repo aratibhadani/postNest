@@ -7,7 +7,7 @@ export declare class PostService {
     private connection;
     private readonly userService;
     constructor(connection: Connection, userService: UserService);
-    createPost(file: any, body: any): Promise<any>;
+    createPost(file: any, body: any, userId: any): Promise<any>;
     checkPostId(postId: number): Promise<PostEntity>;
     findAllPost(query: PaginationParamsDTO, Response: any): Promise<void>;
     findOne(id: number): Promise<any>;

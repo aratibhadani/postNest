@@ -5,5 +5,6 @@ export declare class AuthController {
     private readonly authService;
     constructor(authService: AuthService);
     Login(body: LoginDTO, response: Response): void;
-    checkRoute(): string;
+    checkRoute(user: any, response: Response): void;
+    LogoutRoute(user: any, response: Response): Response<any, Record<string, any>>;
 }

@@ -1,17 +1,15 @@
-import { Injectable } from '@nestjs/common';
-import { verifyPassword } from 'src/helper/common';
+import { ConsoleLogger, Injectable } from '@nestjs/common';
+import { generateToken, verifyPassword } from 'src/helper/common';
+
 
 import { UserService } from 'src/user/user.service';
-import { JwtService } from '@nestjs/jwt';
 import { getRepository } from 'typeorm';
 import { UserEntity } from 'src/entities/user.entity';
-import { JwtPayload } from './jwt.payload';
 @Injectable()
 export class AuthService {
   constructor(
     private readonly userService: UserService,
-    private readonly jwtService: JwtService,
-  ) {}
+  ) { }
 
   public async loginService(reqParam, Response) {
     const { email, password } = reqParam;
@@ -25,7 +23,14 @@ export class AuthService {
       verifyPassword(password, user.password)
         .then(async (is_correctPassword) => {
           if (is_correctPassword) {
-            const token = await this.createJWTToken(user);
+            console.log(user, '->userData');
+
+            const payload = {
+              id: user.id
+            }
+            const token: any = await generateToken(payload);
+            //token set in cookie
+            Response.cookie(process.env.COOKIE_NAME, token)
 
             //update logintoken value in DB
             await getRepository(UserEntity)
@@ -63,16 +68,12 @@ export class AuthService {
     }
   }
 
+
+
   //logout service
   // logoutService(){
 
   // }
 
-  //use for creating jwt token
-  createJWTToken(payload: JwtPayload): string {
-    return this.jwtService.sign({
-      email: payload.email,
-      id: payload.id,
-    });
-  }
+
 }
